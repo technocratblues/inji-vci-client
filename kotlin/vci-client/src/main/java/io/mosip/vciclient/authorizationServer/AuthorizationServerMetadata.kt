@@ -16,5 +16,8 @@ data class AuthorizationServerMetadata(
     val authorizationEndpoint: String? = null,
 
     @SerializedName("interactive_authorization_endpoint")
-    val interactiveAuthorizationEndpoint: String? = null
+    val interactiveAuthorizationEndpoint: String? = null,
+
+    @SerializedName("require_interactive_authorization_request")
+val requireInteractiveAuthorizationRequest: Boolean? = null
 )

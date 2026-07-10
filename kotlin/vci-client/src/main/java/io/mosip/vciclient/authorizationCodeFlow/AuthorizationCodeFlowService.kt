@@ -289,8 +289,13 @@ internal class AuthorizationCodeFlowService(
                     traceabilityId = traceabilityId
                 )
             } catch (e: DownloadFailedException) {
-                if (e.issuerErrorCode == MISSING_INTERACTION_TYPE_ERROR) {
-                    logger.warning("Interactive authorization failed at $interactiveEndpoint: ${e.message}. Falling back to standard authorization endpoint if available.")
+                if (
+    e.issuerErrorCode == MISSING_INTERACTION_TYPE_ERROR &&
+    authorizationServerMetadata.requireInteractiveAuthorizationRequest != true
+) {
+    logger.warning(
+        "Interactive authorization failed at $interactiveEndpoint: ${e.message}. Falling back to standard authorization endpoint if available."
+    )
                     obtainAuthorizationCodeViaAuthorizationEndpoint(
                         authorizationServerMetadata = authorizationServerMetadata,
                         issuerMetadata = issuerMetadata,

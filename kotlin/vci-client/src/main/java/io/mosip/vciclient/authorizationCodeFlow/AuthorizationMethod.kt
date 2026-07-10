@@ -16,5 +16,5 @@ sealed class AuthorizationMethod(val type: InteractionType) {
         val openid4vpWalletConfig: WalletConfig = WalletConfig(),
         val selectCredentialsForPresentation: SelectCredentialsForPresentationCallback,
         val signVerifiablePresentation: SignVerifiablePresentationCallback
-    ) : AuthorizationMethod(type = InteractionType.OpenId4VpPresentation)
+    ) : AuthorizationMethod(type = InteractionType.OpenId4VpPresentationIAE)
 }

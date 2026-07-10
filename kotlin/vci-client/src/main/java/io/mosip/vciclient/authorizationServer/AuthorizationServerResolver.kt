@@ -40,10 +40,9 @@ class AuthorizationServerResolver {
     ): AuthorizationServerMetadata {
         val authorizationServers = issuerMetadata.authorizationServers
         return when {
-            authorizationServers?.size == 1 -> {
-                discoverAndValidate(authorizationServers.first(), expectedGrantType)
-            }
-
+           authorizationServers?.size == 1 -> {
+    discoverAndValidate(authorizationServers.first(), expectedGrantType)
+}
             !offerGrantAuthorizationServer.isNullOrBlank() -> {
                 discoverAndValidate(offerGrantAuthorizationServer, expectedGrantType)
             }
@@ -62,12 +61,20 @@ class AuthorizationServerResolver {
         authorizationServerUrl: String,
         expectedGrantType: String,
     ): AuthorizationServerMetadata {
-        val authorizationServerMetadata = AuthorizationServerDiscoveryService().discover(authorizationServerUrl)
 
-        if (authorizationServerUrl.isNotBlank() && authorizationServerMetadata.issuer != authorizationServerUrl) {
-            throw AuthorizationServerDiscoveryException("Issuer mismatch: Expected '$authorizationServerUrl', got '${authorizationServerMetadata.issuer}'")
-        }
+            val normalizedAuthorizationServerUrl = authorizationServerUrl.trim()
 
+val authorizationServerMetadata =
+    AuthorizationServerDiscoveryService().discover(normalizedAuthorizationServerUrl)
+
+if (
+    normalizedAuthorizationServerUrl.isNotEmpty() &&
+    authorizationServerMetadata.issuer != normalizedAuthorizationServerUrl
+) {
+    throw AuthorizationServerDiscoveryException(
+        "Issuer mismatch: Expected '$normalizedAuthorizationServerUrl', got '${authorizationServerMetadata.issuer}'"
+    )
+}
         if ((expectedGrantType !in ((authorizationServerMetadata.grantTypesSupported) ?: listOf(
                 GrantType.AUTHORIZATION_CODE.value, GrantType.IMPLICIT.value
             )) && expectedGrantType != GrantType.PRE_AUTHORIZED.value)

@@ -56,8 +56,7 @@ class PresentationDuringIssuanceAuthorizationMethodService : AuthorizationMethod
         this.logger = Logger.getLogger(logTag)
     }
 
-    override fun type(): String = InteractionType.OpenId4VpPresentation.value
-
+   override fun type(): String = InteractionType.OpenId4VpPresentationIAE.value
     override suspend fun authorizeUser(
         requestData: AuthorizationRequestData
     ): AuthorizationResponse {
@@ -108,9 +107,18 @@ class PresentationDuringIssuanceAuthorizationMethodService : AuthorizationMethod
 
     private fun validatePresentationRequest(request: Map<String, Any>): AuthorizationRequest {
         val authorizationRequest = openId4vp.authenticateVerifier(request)
-        if (authorizationRequest.responseMode !in listOf("iar-post", "iar-post.jwt")) {
-            throw IllegalArgumentException("response_mode must be 'iar-post' or 'iar-post.jwt'")
-        }
+       if (
+    authorizationRequest.responseMode !in listOf(
+        "iar-post",
+        "iar-post.jwt",
+        "iae_post",
+        "iae_post.jwt"
+    )
+) {
+    throw IllegalArgumentException(
+        "response_mode must be 'iar-post', 'iar-post.jwt', 'iae_post' or 'iae_post.jwt'"
+    )
+}
         return authorizationRequest
     }
 

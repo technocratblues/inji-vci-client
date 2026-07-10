@@ -38,8 +38,18 @@ class InteractiveAuthorizationHandler {
             //interaction types supported will be extracted from authmethods once we start supporting redirect-to-web
             val interactionTypesSupported = authorizationMethods
                 .filter { it.type != InteractionType.RedirectToWeb }
-                .map { it.type.value }
-
+                .flatMap {  
+                    if (it is AuthorizationMethod.PresentationDuringIssuance) {
+            listOf(
+                InteractionType.OpenId4VpPresentation.value,
+                InteractionType.OpenId4VpPresentationIAE.value
+            )
+        } else {
+            listOf(it.type.value)
+        }
+    }
+    .distinct()
+    
             if (interactionTypesSupported.isEmpty()) {
                 throw InteractiveAuthorizationException("No supported interaction types found in authorization methods")
             }
@@ -60,19 +70,19 @@ class InteractiveAuthorizationHandler {
                 )
             }
 
-            when (val type = extractTypeAndThrowIfError(response.body)) {
-                InteractionType.OpenId4VpPresentation.value ->
-                    handlePresentationInteraction(
-                        response.body,
-                        authorizationMethods,
-                        endpoint,
-                        traceabilityId
-                    )
+          when (val type = extractTypeAndThrowIfError(response.body)) {
+    InteractionType.OpenId4VpPresentation.value,
+    InteractionType.OpenId4VpPresentationIAE.value ->
+        handlePresentationInteraction(
+            response.body,
+            authorizationMethods,
+            endpoint,
+            traceabilityId
+        )
 
-                else ->
-                    throw InteractiveAuthorizationException("Unsupported interaction type: $type")
-            }
-
+    else ->
+        throw InteractiveAuthorizationException("Unsupported interaction type: $type")
+}
         } catch (e: InteractiveAuthorizationException) {
             logger.warning("Interactive authorization failed: ${e.message}")
             throw e

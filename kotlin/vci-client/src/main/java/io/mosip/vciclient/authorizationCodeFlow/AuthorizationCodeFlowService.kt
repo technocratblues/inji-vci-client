@@ -267,70 +267,77 @@ internal class AuthorizationCodeFlowService(
     }
 
     private suspend fun obtainAuthorizationCode(
-        authorizationServerMetadata: AuthorizationServerMetadata,
-        issuerMetadata: IssuerMetadata,
-        clientMetadata: ClientMetadata,
-        pkceSession: PKCESessionManager.PKCESession,
-        credentialConfigurationId: String,
-        authorizationMethods: List<AuthorizationMethod>,
-        traceabilityId: String? = null,
-    ): String {
-        val interactiveEndpoint = authorizationServerMetadata.interactiveAuthorizationEndpoint
+    authorizationServerMetadata: AuthorizationServerMetadata,
+    issuerMetadata: IssuerMetadata,
+    clientMetadata: ClientMetadata,
+    pkceSession: PKCESessionManager.PKCESession,
+    credentialConfigurationId: String,
+    authorizationMethods: List<AuthorizationMethod>,
+    traceabilityId: String? = null,
+): String {
 
-        return if (interactiveEndpoint != null) {
-            try {
-                obtainAuthorizationCodeViaInteractiveAuthorizationEndpoint(
-                    endpoint = interactiveEndpoint,
-                    issuerMetadata = issuerMetadata,
-                    clientMetadata = clientMetadata,
-                    pkceSession = pkceSession,
-                    credentialConfigurationId = credentialConfigurationId,
-                    authorizationMethods = authorizationMethods,
-                    traceabilityId = traceabilityId
-                )
-            } catch (e: DownloadFailedException) {
-                if (
-    e.issuerErrorCode == MISSING_INTERACTION_TYPE_ERROR &&
-    authorizationServerMetadata.requireInteractiveAuthorizationRequest != true
-) {
-    logger.warning(
-        "Interactive authorization failed at $interactiveEndpoint: ${e.message}. Falling back to standard authorization endpoint if available."
-    )
-                    obtainAuthorizationCodeViaAuthorizationEndpoint(
-                        authorizationServerMetadata = authorizationServerMetadata,
-                        issuerMetadata = issuerMetadata,
-                        clientMetadata = clientMetadata,
-                        pkceSession = pkceSession,
-                        authorizationMethods = authorizationMethods
-                    )
-                } else {
-                    throw e
-                }
-            }
-        } else {
-            obtainAuthorizationCodeViaAuthorizationEndpoint(
-                authorizationServerMetadata = authorizationServerMetadata,
+    val interactiveEndpoint =
+        authorizationServerMetadata.interactiveAuthorizationEndpoint?.trim()
+
+    val hasInteractiveEndpoint = !interactiveEndpoint.isNullOrEmpty()
+
+    if (
+        authorizationServerMetadata.requireInteractiveAuthorizationRequest == true &&
+        !hasInteractiveEndpoint
+    ) {
+        throw DownloadFailedException("Missing interactive authorization endpoint")
+    }
+
+    return if (hasInteractiveEndpoint) {
+        try {
+              obtainAuthorizationCodeViaInteractiveAuthorizationEndpoint(
+                endpoint = interactiveEndpoint!!,
                 issuerMetadata = issuerMetadata,
                 clientMetadata = clientMetadata,
                 pkceSession = pkceSession,
-                authorizationMethods = authorizationMethods
+                credentialConfigurationId = credentialConfigurationId,
+                authorizationMethods = authorizationMethods,
+                traceabilityId = traceabilityId
             )
+        } catch (e: DownloadFailedException) {
+            if (
+                e.issuerErrorCode == MISSING_INTERACTION_TYPE_ERROR &&
+                authorizationServerMetadata.requireInteractiveAuthorizationRequest != true
+            ) {
+                logger.warning(
+                    "Interactive authorization failed at $interactiveEndpoint: ${e.message}. Falling back to standard authorization endpoint if available."
+                )
+
+                obtainAuthorizationCodeViaAuthorizationEndpoint(
+                    authorizationServerMetadata = authorizationServerMetadata,
+                    issuerMetadata = issuerMetadata,
+                    clientMetadata = clientMetadata,
+                    pkceSession = pkceSession,
+                    authorizationMethods = authorizationMethods
+                )
+            } else {
+                throw e
+            }
         }
-    }
-
-    private suspend fun obtainAuthorizationCodeViaInteractiveAuthorizationEndpoint(
-        endpoint: String,
-        issuerMetadata: IssuerMetadata,
-        clientMetadata: ClientMetadata,
-        pkceSession: PKCESessionManager.PKCESession,
-        credentialConfigurationId: String,
-        authorizationMethods: List<AuthorizationMethod>,
-        traceabilityId: String? = null,
-    ): String {
-        logger.info(
-            "Using Interactive Authorization Endpoint: $endpoint for issuer=${issuerMetadata.credentialIssuer}"
+    } else {
+        obtainAuthorizationCodeViaAuthorizationEndpoint(
+            authorizationServerMetadata = authorizationServerMetadata,
+            issuerMetadata = issuerMetadata,
+            clientMetadata = clientMetadata,
+            pkceSession = pkceSession,
+            authorizationMethods = authorizationMethods
         )
-
+    }
+}
+private suspend fun obtainAuthorizationCodeViaInteractiveAuthorizationEndpoint(
+    endpoint: String,
+    issuerMetadata: IssuerMetadata,
+    clientMetadata: ClientMetadata,
+    pkceSession: PKCESessionManager.PKCESession,
+    credentialConfigurationId: String,
+    authorizationMethods: List<AuthorizationMethod>,
+    traceabilityId: String? = null,
+): String {
         val response = try {
             interactiveAuthorizationHandler.handle(
                 endpoint = endpoint,

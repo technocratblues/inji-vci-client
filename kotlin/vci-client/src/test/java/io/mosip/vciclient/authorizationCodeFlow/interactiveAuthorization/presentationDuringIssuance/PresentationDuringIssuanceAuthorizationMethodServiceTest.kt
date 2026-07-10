@@ -242,7 +242,7 @@ class PresentationDuringIssuanceAuthorizationMethodServiceTest {
 
         verify(exactly = 1) {
             mockOvp.constructErrorInfo(
-                match { it.message == "response_mode must be 'iar-post' or 'iar-post.jwt'" }
+                match { it.message == "response_mode must be 'iar-post', 'iar-post.jwt', 'iae_post' or 'iae_post.jwt'" }
             )
         }
         coVerify(exactly = 0) { mockOvp.constructUnsignedVPToken(any()) }

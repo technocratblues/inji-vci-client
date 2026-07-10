@@ -1,5 +1,6 @@
 package io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.presentationDuringIssuance
 
+import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.handler.InteractionType
 import com.google.gson.annotations.SerializedName
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.response.InteractionResponse
 
@@ -16,10 +17,14 @@ data class PresentationInteractionResponse(
 
     override fun validate() {
 
-        if (type != "openid4vp_presentation") {
-            throw IllegalArgumentException("Invalid type: expected 'openid4vp_presentation'")
-        }
-
+        if (
+    type != InteractionType.OpenId4VpPresentation.value &&
+    type != InteractionType.OpenId4VpPresentationIAE.value
+) {
+    throw IllegalArgumentException(
+        "Invalid type: expected '${InteractionType.OpenId4VpPresentation.value}' or '${InteractionType.OpenId4VpPresentationIAE.value}'"
+    )
+}
         if (openid4vpRequest.isEmpty()) {
             throw IllegalArgumentException("openid4vpRequest must not be empty")
         }

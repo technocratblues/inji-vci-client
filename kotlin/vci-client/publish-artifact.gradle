@@ -114,7 +114,7 @@ publishing {
     }
 }
 
-signing {
-    useGpgCmd()
-    sign publishing.publications.aar
-}
+// signing {
+//     useGpgCmd()
+//     sign publishing.publications.aar
+// }

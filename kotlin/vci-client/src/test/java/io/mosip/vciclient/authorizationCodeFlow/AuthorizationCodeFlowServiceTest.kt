@@ -202,7 +202,7 @@ class AuthorizationCodeFlowServiceTest {
                 every { authorizationEndpoint } returns "https://auth.example.com"
                 every { tokenEndpoint } returns "https://token.example.com"
                 every { interactiveAuthorizationEndpoint } returns "https://auth.example.com/interactive"
-                 every { requireInteractiveAuthorizationRequest } returns false
+             every { requireInteractiveAuthorizationRequest } returns false
             }
 
 
@@ -265,6 +265,7 @@ class AuthorizationCodeFlowServiceTest {
             every { authorizationEndpoint } returns "https://auth.example.com"
             every { tokenEndpoint } returns null
             every { interactiveAuthorizationEndpoint } returns null
+             every { requireInteractiveAuthorizationRequest } returns false
         }
 
         every { resolvedIssuerMetadata.tokenEndpoint } returns null
@@ -293,7 +294,6 @@ class AuthorizationCodeFlowServiceTest {
             every { interactiveAuthorizationEndpoint } returns "https://auth.example.com/interactive"
             every { tokenEndpoint } returns "https://token.example.com"
             every { requireInteractiveAuthorizationRequest } returns false
-every { requireInteractiveAuthorizationRequest } returns false
         }
 
         val mockHandler = mockkClass(InteractiveAuthorizationHandler::class)
@@ -660,4 +660,32 @@ every { requireInteractiveAuthorizationRequest } returns false
 
             assertEquals("auth-code", response["code"])
         }
+
+@Test
+fun `should throw when interactive authorization is required but endpoint is missing`() = runBlocking {
+    coEvery {
+        anyConstructed<AuthorizationServerResolver>().resolveForAuthCode(any(), any())
+    } returns mockk {
+        every { authorizationEndpoint } returns "https://auth.example.com"
+        every { tokenEndpoint } returns "https://token.example.com"
+        every { interactiveAuthorizationEndpoint } returns null
+        every { requireInteractiveAuthorizationRequest } returns true
+    }
+
+    val exception = assertThrows<DownloadFailedException> {
+        AuthorizationCodeFlowService().requestCredentialsDraft13(
+            issuerMetadata = resolvedIssuerMetadata,
+            credentialConfigurationId = credentialConfigurationId,
+            clientMetadata = clientMetadata,
+            getTokenResponse = getTokenResponse,
+            getProofJwt = getProofJwt,
+            jwtProofAlgorithmsSupported = listOf("ES256"),
+            authorizationMethods = listOf(authorizationMethod)
+        )
+    }
+
+  assertTrue(
+    exception.message!!.contains("Missing interactive authorization endpoint")
+)
+}
 }

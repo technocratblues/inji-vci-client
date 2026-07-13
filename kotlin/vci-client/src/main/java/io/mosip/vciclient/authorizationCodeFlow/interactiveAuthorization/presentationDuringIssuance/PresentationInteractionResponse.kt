@@ -17,10 +17,12 @@ data class PresentationInteractionResponse(
 
     override fun validate() {
 
-        if (
-    type != InteractionType.OpenId4VpPresentation.value &&
-    type != InteractionType.OpenId4VpPresentationIAE.value
-) {
+     if (
+        type == InteractionType.OpenId4VpPresentation.value ||
+        type == InteractionType.OpenId4VpPresentationIAE.value
+    ) {
+        
+    } else {
     throw IllegalArgumentException(
         "Invalid type: expected '${InteractionType.OpenId4VpPresentation.value}' or '${InteractionType.OpenId4VpPresentationIAE.value}'"
     )

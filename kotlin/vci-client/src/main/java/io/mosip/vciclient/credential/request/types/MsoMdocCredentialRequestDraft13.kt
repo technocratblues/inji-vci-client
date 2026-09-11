@@ -15,7 +15,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 class MsoMdocCredentialRequestDraft13(
     override val accessToken: String,
     override val issuerMetadata: IssuerMetadata,
-    override val proof: Proof,
+    override val proof: Proof?,
 ) : CredentialRequest {
     override fun constructRequest(): Request {
         return Request.Builder()
@@ -48,7 +48,7 @@ class MsoMdocCredentialRequestDraft13(
 private data class MdocCredentialRequestBody(
     val format: String,
     val doctype: String,
-    val proof: Proof,
+    val proof: Proof?,
 ) {
     fun toJson(): String {
         return JsonUtils.serialize(this)

@@ -25,6 +25,11 @@ data class IssuerMetadataResult(
         return bindingMethods?.filterIsInstance<String>() ?: emptyList()
     }
 
+    fun isHolderBindingRequired(credentialConfigurationId: String): Boolean {
+        return extractCryptographicBindingMethods(credentialConfigurationId).isNotEmpty() &&
+                extractSupportedProofTypes(credentialConfigurationId).isNotEmpty()
+    }
+
     private fun credentialConfiguration(credentialConfigurationId: String): Map<*, *>? {
         val configurations = this.raw["credential_configurations_supported"] as? Map<*, *>
 

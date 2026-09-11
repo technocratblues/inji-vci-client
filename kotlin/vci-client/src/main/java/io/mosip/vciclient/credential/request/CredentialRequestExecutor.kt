@@ -37,7 +37,7 @@ class CredentialRequestExecutor(
     fun requestCredential(
         issuerMetadata: IssuerMetadata,
         credentialConfigurationId: String,
-        proofs: CredentialRequestProofs,
+        proofs: CredentialRequestProofs?,
         accessToken: String,
         downloadTimeoutInMillis: Long? = 10000,
         tokenType: String? = null,
@@ -122,7 +122,7 @@ class CredentialRequestExecutor(
     fun requestCredentialDraft13(
         issuerMetadata: IssuerMetadata,
         credentialConfigurationId: String,
-        proof: Proof,
+        proof: Proof?,
         accessToken: String,
         downloadTimeoutInMillis: Long? = 10000,
         tokenType: String? = null,

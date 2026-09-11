@@ -15,12 +15,17 @@ class CredentialRequestFactoryDraft13 {
         credentialFormat: CredentialFormat,
         accessToken: String,
         issuerMetadata: IssuerMetadata,
-        proof: Proof,
+        proof: Proof?,
     ): Request {
-        val jwtProof = proof as? JWTProof
+        val jwtProof = if (proof != null) {
+        val validatedProof = proof as? JWTProof
             ?: throw InvalidDataProvidedException("Proof object cannot be empty or invalid")
-        if (jwtProof.jwt.isEmpty()) {
+        if (validatedProof.jwt.isEmpty()) {
             throw InvalidDataProvidedException("Proof object cannot be empty or invalid")
+        }
+            validatedProof
+        } else {
+            null
         }
 
         val credentialRequest = when (credentialFormat) {

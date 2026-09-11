@@ -2,6 +2,7 @@ package io.mosip.vciclient.networkManager
 
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import java.net.InetAddress
 import okhttp3.Request
 import org.junit.After
 import org.junit.Before
@@ -17,10 +18,13 @@ import java.util.concurrent.TimeUnit
 class NetworkManagerTest {
     private lateinit var server: MockWebServer
 
+    private fun MockWebServer.localUrl(path: String) =
+        url(path).newBuilder().host("127.0.0.1").build()
+
     @Before
     fun setUp() {
         server = MockWebServer()
-        server.start()
+        server.start(InetAddress.getByName("127.0.0.1"), 0)
     }
 
     @After
@@ -32,7 +36,7 @@ class NetworkManagerTest {
     fun `should return response for successful GET request`() {
         val expectedBody = "{\"success\":true}"
         server.enqueue(MockResponse().setResponseCode(200).setBody(expectedBody))
-        val request = Request.Builder().url(server.url("/test")).get().build()
+        val request = Request.Builder().url(server.localUrl("/test")).get().build()
         val response = NetworkManager.sendRequest(request)
         assertEquals(expectedBody, response.body)
     }
@@ -48,7 +52,7 @@ class NetworkManagerTest {
     @Test
     fun `should handle empty response body`() {
         server.enqueue(MockResponse().setResponseCode(200).setBody(""))
-        val request = Request.Builder().url(server.url("/empty")).get().build()
+        val request = Request.Builder().url(server.localUrl("/empty")).get().build()
         val response = NetworkManager.sendRequest(request)
         assertEquals("", response.body)
     }
@@ -62,7 +66,7 @@ class NetworkManagerTest {
         )
 
         val exception = assertFailsWith<NetworkRequestFailedException> {
-            NetworkManager.sendRequest(Request.Builder().url(server.url("/error")).get().build())
+            NetworkManager.sendRequest(Request.Builder().url(server.localUrl("/error")).get().build())
         }
 
         assertEquals("invalid_request", exception.issuerErrorCode)
@@ -78,7 +82,7 @@ class NetworkManagerTest {
         )
 
         val exception = assertFailsWith<NetworkRequestFailedException> {
-            NetworkManager.sendRequest(Request.Builder().url(server.url("/error")).get().build())
+            NetworkManager.sendRequest(Request.Builder().url(server.localUrl("/error")).get().build())
         }
 
         assertNull(exception.issuerErrorCode)
@@ -96,7 +100,7 @@ class NetworkManagerTest {
 
         val exception = assertFailsWith<NetworkRequestTimeoutException> {
             NetworkManager.sendRequest(
-                request = Request.Builder().url(server.url("/timeout")).get().build(),
+                request = Request.Builder().url(server.localUrl("/timeout")).get().build(),
                 timeoutMillis = 200
             )
         }

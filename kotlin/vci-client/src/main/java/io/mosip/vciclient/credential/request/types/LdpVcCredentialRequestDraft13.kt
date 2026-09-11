@@ -16,7 +16,7 @@ import okhttp3.RequestBody.Companion.toRequestBody
 class LdpVcCredentialRequestDraft13(
     override val accessToken: String,
     override val issuerMetadata: IssuerMetadata,
-    override val proof: Proof,
+    override val proof: Proof?,
 ) : CredentialRequest {
     override fun constructRequest(): Request {
         return Request.Builder()
@@ -53,7 +53,7 @@ class LdpVcCredentialRequestDraft13(
 private data class LdpVcCredentialRequestBody(
     val format: String,
     val credentialDefinition: CredentialDefinition,
-    val proof: Proof,
+    val proof: Proof?,
 ) {
     fun toJson(): String {
         return JsonUtils.serialize(this)

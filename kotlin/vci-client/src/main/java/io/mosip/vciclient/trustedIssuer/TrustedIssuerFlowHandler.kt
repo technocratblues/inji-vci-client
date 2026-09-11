@@ -32,6 +32,9 @@ class TrustedIssuerFlowHandler internal constructor(
     ): CredentialResponse {
         val issuerMetadata = loadIssuerMetadata(credentialIssuer, credentialConfigurationId)
         val proofBindingContext = issuerMetadata.toProofBindingContext(credentialConfigurationId)
+        val isHolderBindingRequired = issuerMetadata.isHolderBindingRequired(
+            credentialConfigurationId
+        )
 
         return when (issuerMetadata.issuerMetadata.specVersion) {
             OID4VCIVersion.V1 -> authService.requestCredentials(
@@ -43,6 +46,7 @@ class TrustedIssuerFlowHandler internal constructor(
                 authorizationMethods = authorizationMethods,
                 downloadTimeOutInMillis = downloadTimeoutInMillis,
                 proofBindingContext = proofBindingContext,
+                isHolderBindingRequired = isHolderBindingRequired,
                 dpopManager = dpopManager
             )
 
@@ -61,6 +65,7 @@ class TrustedIssuerFlowHandler internal constructor(
                     authorizationMethods = authorizationMethods,
                     downloadTimeOutInMillis = downloadTimeoutInMillis,
                     proofBindingContext = proofBindingContext,
+                    isHolderBindingRequired = isHolderBindingRequired,
                     dpopManager = dpopManager
                 )
                 CredentialResponse(

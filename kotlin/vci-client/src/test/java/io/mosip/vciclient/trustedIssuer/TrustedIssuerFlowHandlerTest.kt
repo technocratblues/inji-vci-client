@@ -61,7 +61,7 @@ class TrustedIssuerFlowHandlerTest {
                 getProofs = any(),
                 authorizationMethods = authorizationMethods,
                 downloadTimeOutInMillis = 10_000,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), cryptographicBindingMethodsSupported = listOf("did:jwk"), proofTypesSupported = listOf("jwt")),
                 dpopManager = any()
             )
         } returns expectedResponse
@@ -101,7 +101,7 @@ class TrustedIssuerFlowHandlerTest {
                 getProofJwt = any(),
                 authorizationMethods = authorizationMethods,
                 downloadTimeOutInMillis = 10_000,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), cryptographicBindingMethodsSupported = listOf("did:jwk"), proofTypesSupported = listOf("jwt")),
                 dpopManager = any()
             )
         } returns draft13Response
@@ -138,7 +138,7 @@ class TrustedIssuerFlowHandlerTest {
                 getProofJwt = any(),
                 authorizationMethods = authorizationMethods,
                 downloadTimeOutInMillis = any(),
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), cryptographicBindingMethodsSupported = listOf("did:jwk"), proofTypesSupported = listOf("jwt")),
                 dpopManager = any()
             )
         } coAnswers {
@@ -191,7 +191,7 @@ class TrustedIssuerFlowHandlerTest {
                 getProofJwt = any(),
                 authorizationMethods = authorizationMethods,
                 downloadTimeOutInMillis = any(),
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), cryptographicBindingMethodsSupported = listOf("did:jwk"), proofTypesSupported = listOf("jwt")),
                 dpopManager = any()
             )
         } returns draft13Response
@@ -214,7 +214,7 @@ class TrustedIssuerFlowHandlerTest {
                 getProofJwt = any(),
                 authorizationMethods = authorizationMethods,
                 downloadTimeOutInMillis = any(),
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), cryptographicBindingMethodsSupported = listOf("did:jwk"), proofTypesSupported = listOf("jwt")),
                 dpopManager = any()
             )
         }
@@ -233,6 +233,7 @@ class TrustedIssuerFlowHandlerTest {
             raw = mapOf(
                 "credential_configurations_supported" to mapOf(
                     credentialConfigurationId to mapOf(
+                        "cryptographic_binding_methods_supported" to listOf("did:jwk"),
                         "proof_types_supported" to mapOf(
                             "jwt" to mapOf(
                                 "proof_signing_alg_values_supported" to listOf("ES256")

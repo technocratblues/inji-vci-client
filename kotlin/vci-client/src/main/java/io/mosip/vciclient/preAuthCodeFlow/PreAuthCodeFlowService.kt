@@ -36,6 +36,7 @@ internal class PreAuthCodeFlowService(
         getTxCode: TxCodeCallback? = null,
         downloadTimeoutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
         offer: CredentialOffer,
+        isHolderBindingRequired: Boolean = true,
         dpopManager: DPoPManager = DPoPManager(),
     ): CredentialResponse {
         return executeRequestCredentials(
@@ -46,8 +47,9 @@ internal class PreAuthCodeFlowService(
             offer = offer,
             dpopManager = dpopManager
         ) { token ->
+            val proofs = if (isHolderBindingRequired) {
             val nonce = resolveNonce(issuerMetadata, downloadTimeoutInMillis, dpopManager)
-            val proofs = try {
+            try {
                 getProofs(
                     proofBindingContext.toCredentialRequestProofMetadata(issuerMetadata.credentialIssuer, nonce)
                 )
@@ -56,6 +58,9 @@ internal class PreAuthCodeFlowService(
                     "Failed to obtain proofs from callback: ${e.message}",
                     cause = e
                 )
+            }
+            } else {
+                null
             }
 
             credentialExecutor.requestCredential(
@@ -79,6 +84,7 @@ internal class PreAuthCodeFlowService(
         getTxCode: TxCodeCallback? = null,
         downloadTimeoutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
         offer: CredentialOffer,
+        isHolderBindingRequired: Boolean = true,
         dpopManager: DPoPManager = DPoPManager(),
     ): CredentialResponseDraft13 {
         return executeRequestCredentials(
@@ -89,6 +95,7 @@ internal class PreAuthCodeFlowService(
             offer = offer,
             dpopManager = dpopManager
         ) { token ->
+            val proof = if (isHolderBindingRequired) {
             val nonce = NonceService.extractNonceFromTokenResponse(token)
             val jwt = try {
                 getProofJwt(
@@ -100,11 +107,15 @@ internal class PreAuthCodeFlowService(
                     cause = e
                 )
             }
+                JWTProof(jwt)
+            } else {
+                null
+            }
 
             credentialExecutor.requestCredentialDraft13(
                 issuerMetadata = issuerMetadata,
                 credentialConfigurationId = credentialConfigurationId,
-                proof = JWTProof(jwt),
+                proof = proof,
                 accessToken = token.accessToken,
                 downloadTimeoutInMillis = downloadTimeoutInMillis,
                 tokenType = token.tokenType,

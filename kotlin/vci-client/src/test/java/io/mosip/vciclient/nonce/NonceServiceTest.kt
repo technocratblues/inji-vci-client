@@ -9,6 +9,7 @@ import io.mosip.vciclient.token.TokenResponse
 import kotlinx.coroutines.runBlocking
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import java.net.InetAddress
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
@@ -19,12 +20,16 @@ import org.junit.Test
 
 class NonceServiceTest {
     private lateinit var server: MockWebServer
+
+    private fun MockWebServer.localUrl(path: String) =
+        url(path).newBuilder().host("127.0.0.1").build()
+
     private lateinit var nonceService: NonceService
 
     @Before
     fun setUp() {
         server = MockWebServer()
-        server.start()
+        server.start(InetAddress.getByName("127.0.0.1"), 0)
         nonceService = NonceService()
     }
 
@@ -53,7 +58,7 @@ class NonceServiceTest {
 
         val nonce = nonceService.fetchNonce(
             issuerMetadata = issuerMetadata(
-                nonceEndpoint = server.url("/nonce").toString()
+                nonceEndpoint = server.localUrl("/nonce").toString()
             )
         )
 
@@ -79,7 +84,7 @@ class NonceServiceTest {
             runBlocking {
                 nonceService.fetchNonce(
                     issuerMetadata = issuerMetadata(
-                        nonceEndpoint = server.url("/nonce").toString()
+                        nonceEndpoint = server.localUrl("/nonce").toString()
                     )
                 )
             }
@@ -105,7 +110,7 @@ class NonceServiceTest {
         }
 
         val nonce = nonceService.fetchNonce(
-            issuerMetadata = issuerMetadata(nonceEndpoint = server.url("/nonce").toString()),
+            issuerMetadata = issuerMetadata(nonceEndpoint = server.localUrl("/nonce").toString()),
             dpopManager = dpopManager
         )
 
@@ -132,7 +137,7 @@ class NonceServiceTest {
         }
 
         nonceService.fetchNonce(
-            issuerMetadata = issuerMetadata(nonceEndpoint = server.url("/nonce").toString()),
+            issuerMetadata = issuerMetadata(nonceEndpoint = server.localUrl("/nonce").toString()),
             dpopManager = dpopManager
         )
 

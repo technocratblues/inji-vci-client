@@ -43,7 +43,7 @@ class CredentialOfferFlowHandler internal constructor(
         val result = executeDownloadCredentials(
             credentialOffer = credentialOffer,
             onCheckIssuerTrust = onCheckIssuerTrust,
-        ) { offer, issuerMetadataResponse, credentialConfigurationId, proofBindingContext ->
+        ) { offer, issuerMetadataResponse, credentialConfigurationId, proofBindingContext, isHolderBindingRequired ->
             when (issuerMetadataResponse.issuerMetadata.specVersion) {
                 OID4VCIVersion.V1 -> {
                     if (offer.isPreAuthorizedFlow()) {
@@ -56,7 +56,8 @@ class CredentialOfferFlowHandler internal constructor(
                             getTxCode = getTxCode,
                             downloadTimeoutInMillis = downloadTimeoutInMillis,
                             offer = offer,
-                            dpopManager = dpopManager
+                            dpopManager = dpopManager,
+                                    isHolderBindingRequired = isHolderBindingRequired
                         )
                     } else if (offer.isAuthorizationCodeFlow()) {
                         authorizationCodeFlowService.requestCredentials(
@@ -70,6 +71,7 @@ class CredentialOfferFlowHandler internal constructor(
                             downloadTimeOutInMillis = downloadTimeoutInMillis,
                             proofBindingContext = proofBindingContext,
                             traceabilityId = traceabilityId,
+                            isHolderBindingRequired = isHolderBindingRequired,
                             dpopManager = dpopManager
                         )
                     } else {
@@ -94,7 +96,8 @@ class CredentialOfferFlowHandler internal constructor(
                             getTxCode = getTxCode,
                             downloadTimeoutInMillis = downloadTimeoutInMillis,
                             offer = offer,
-                            dpopManager = dpopManager
+                            dpopManager = dpopManager,
+                                    isHolderBindingRequired = isHolderBindingRequired
                         )
                     } else if (offer.isAuthorizationCodeFlow()) {
                         authorizationCodeFlowService.requestCredentialsDraft13(
@@ -108,6 +111,7 @@ class CredentialOfferFlowHandler internal constructor(
                             downloadTimeOutInMillis = downloadTimeoutInMillis,
                             proofBindingContext = proofBindingContext,
                             traceabilityId = traceabilityId,
+                            isHolderBindingRequired = isHolderBindingRequired,
                             dpopManager = dpopManager
                         )
                     } else {
@@ -142,7 +146,7 @@ class CredentialOfferFlowHandler internal constructor(
         val result = executeDownloadCredentials(
             credentialOffer = credentialOffer,
             onCheckIssuerTrust = onCheckIssuerTrust,
-        ) { offer, issuerMetadataResponse, credentialConfigurationId, proofBindingContext ->
+        ) { offer, issuerMetadataResponse, credentialConfigurationId, proofBindingContext, isHolderBindingRequired ->
             if (offer.isPreAuthorizedFlow()) {
                 preAuthFlowService.requestCredentialsDraft13(
                     issuerMetadata = issuerMetadataResponse.issuerMetadata,
@@ -152,7 +156,8 @@ class CredentialOfferFlowHandler internal constructor(
                     credentialConfigurationId = credentialConfigurationId,
                     getTxCode = getTxCode,
                     downloadTimeoutInMillis = downloadTimeoutInMillis,
-                    offer = offer
+                    offer = offer,
+                            isHolderBindingRequired = isHolderBindingRequired
                 )
             } else if (offer.isAuthorizationCodeFlow()) {
                 authorizationCodeFlowService.requestCredentialsDraft13(
@@ -165,7 +170,8 @@ class CredentialOfferFlowHandler internal constructor(
                     credentialOffer = offer,
                     downloadTimeOutInMillis = downloadTimeoutInMillis,
                     proofBindingContext = proofBindingContext,
-                    traceabilityId = traceabilityId
+                    traceabilityId = traceabilityId,
+                            isHolderBindingRequired = isHolderBindingRequired
                 )
             } else {
                 throw CredentialOfferFetchFailedException("Credential offer does not contain a supported grant type")
@@ -180,7 +186,7 @@ class CredentialOfferFlowHandler internal constructor(
     private suspend fun <Response> executeDownloadCredentials(
         credentialOffer: String,
         onCheckIssuerTrust: CheckIssuerTrustCallback?,
-        executeFlow: suspend (CredentialOffer, IssuerMetadataResult, String, ProofBindingContext) -> Response,
+        executeFlow: suspend (CredentialOffer, IssuerMetadataResult, String, ProofBindingContext, Boolean) -> Response,
     ): Response {
         val offer = credentialOfferService.fetchCredentialOffer(credentialOffer)
         if (offer.credentialConfigurationIds.size > 1) {
@@ -206,7 +212,8 @@ class CredentialOfferFlowHandler internal constructor(
             offer,
             issuerMetadataResponse,
             credentialConfigurationId,
-            issuerMetadataResponse.toProofBindingContext(credentialConfigurationId)
+            issuerMetadataResponse.toProofBindingContext(credentialConfigurationId),
+            issuerMetadataResponse.isHolderBindingRequired(credentialConfigurationId)
         )
     }
 

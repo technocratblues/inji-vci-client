@@ -16,9 +16,9 @@ class CredentialRequestFactory {
         accessToken: String,
         issuer: IssuerMetadata,
         credentialConfigurationId: String,
-        proofs: CredentialRequestProofs,
+        proofs: CredentialRequestProofs?,
     ): Request {
-        if (proofs.isEmpty) {
+        if (proofs != null && proofs.isEmpty) {
             throw InvalidDataProvidedException("Proof collection cannot be empty")
         }
 
@@ -48,7 +48,7 @@ class CredentialRequestFactory {
 
     fun makeRequestBody(
         credentialConfigurationId: String,
-        proofs: CredentialRequestProofs,
+        proofs: CredentialRequestProofs?,
     ): String {
         return JsonUtils.serialize(
             CredentialRequestBody(
@@ -61,5 +61,5 @@ class CredentialRequestFactory {
 
 private data class CredentialRequestBody(
     val credentialConfigurationId: String,
-    val proofs: CredentialRequestProofs,
+    val proofs: CredentialRequestProofs?,
 )

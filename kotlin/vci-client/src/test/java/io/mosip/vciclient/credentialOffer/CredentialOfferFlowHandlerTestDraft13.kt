@@ -69,6 +69,7 @@ class CredentialOfferFlowHandlerTest {
         every { mockIssuerMetadataResult.extractJwtProofSigningAlgorithms(any()) } returns listOf("ES256")
         every { mockIssuerMetadataResult.extractSupportedProofTypes(any()) } returns listOf("jwt")
         every { mockIssuerMetadataResult.extractCryptographicBindingMethods(any()) } returns emptyList()
+        every { mockIssuerMetadataResult.isHolderBindingRequired(any()) } returns true
         txCode = object : TxCodeCallback {
             override suspend fun invoke(
                 p1: String?, p2: String?, p3: Int?
@@ -320,6 +321,7 @@ class CredentialOfferFlowHandlerTest {
                 any(),
                 any(),
                 any(),
+                any(),
                 any()
             )
         } returns CredentialResponseDraft13(
@@ -435,6 +437,7 @@ class CredentialOfferFlowHandlerTest {
         every { issuerMetadataResult.extractJwtProofSigningAlgorithms("UniversityDegreeCredential") } returns listOf("ES256")
         every { issuerMetadataResult.extractSupportedProofTypes("UniversityDegreeCredential") } returns listOf("jwt")
         every { issuerMetadataResult.extractCryptographicBindingMethods("UniversityDegreeCredential") } returns emptyList()
+        every { issuerMetadataResult.isHolderBindingRequired("UniversityDegreeCredential") } returns true
 
         coEvery {
             onCheckIssuerTrust.invoke(

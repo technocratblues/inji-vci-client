@@ -22,10 +22,13 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 import java.util.concurrent.TimeUnit
+import java.net.InetAddress
 
 class CredentialRequestExecutorTest {
 
     private lateinit var mockWebServer: MockWebServer
+    private fun MockWebServer.localUrl(path: String) =
+        url(path).newBuilder().host("127.0.0.1").build()
     private lateinit var resolvedMeta: IssuerMetadata
     private val mockProof = JWTProof("headerEncoded.payloadEncoded.signature")
     private val accessToken = "mock-access-token"
@@ -33,11 +36,11 @@ class CredentialRequestExecutorTest {
     @Before
     fun setup() {
         mockWebServer = MockWebServer()
-        mockWebServer.start()
+        mockWebServer.start(InetAddress.getByName("127.0.0.1"), 0)
 
         resolvedMeta = IssuerMetadata(
             credentialIssuer = "https://audience",
-            credentialEndpoint = mockWebServer.url("/io/mosip/vciclient/credential").toString(),
+            credentialEndpoint = mockWebServer.localUrl("/io/mosip/vciclient/credential").toString(),
             credentialFormat = CredentialFormat.LDP_VC,
             credentialType = listOf("VerifiableCredential"),
             context = listOf("https://www.w3.org/2018/credentials/v1"),

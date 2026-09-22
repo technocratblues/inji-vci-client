@@ -12,6 +12,7 @@ import io.mosip.vciclient.exception.DownloadFailedException
 import io.mosip.vciclient.issuerMetadata.IssuerMetadata
 import io.mosip.vciclient.networkManager.NetworkManager
 import io.mosip.vciclient.token.TokenResponse
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -35,6 +36,7 @@ class NonceService(
         issuerMetadata: IssuerMetadata,
         timeoutInMillis: Long = DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
         dpopManager: DPoPManager? = null,
+        ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ): String? {
         val nonceEndpoint = issuerMetadata.nonceEndpoint
         if (nonceEndpoint.isNullOrEmpty()) {
@@ -48,7 +50,7 @@ class NonceService(
             .post("{}".toRequestBody(APPLICATION_JSON.toMediaType()))
             .build()
 
-        val response = withContext(Dispatchers.IO) {
+        val response = withContext(ioDispatcher) {
             session.sendRequest(
                 request = request,
                 timeoutMillis = timeoutInMillis

@@ -1,0 +1,42 @@
+[versions]
+kotlin = "1.9.23"
+dokka = "1.9.20"
+sonarqube = "5.1.0.4872"
+jacoco = "0.8.12"
+
+okHttp = "4.12.0"
+nimbusJoseJwt = "9.37.3"
+fusionauthJwt = "5.3.2"
+gson = "2.10.1"
+coroutines = "1.7.3"
+bouncyCastle = "1.78"
+tink = "1.7.0"
+mockWebServer = "4.12.0"
+mockk = "1.13.10"
+junitJupiterApi = "5.10.2"
+orgJson = "20231013"
+coroutinesTest = "1.7.3"
+okio = "3.6.0"
+injiOpenid4vp = "1.0.0-beta-SNAPSHOT"
+
+[libraries]
+okHttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okHttp" }
+nimbusJoseJwt = { group = "com.nimbusds", name = "nimbus-jose-jwt", version.ref = "nimbusJoseJwt" }
+fusionauthJwt = { group = "io.fusionauth", name = "fusionauth-jwt", version.ref = "fusionauthJwt" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
+coroutinesCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+bouncyCastle = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncyCastle" }
+tink = { group = "com.google.crypto.tink", name = "tink", version.ref = "tink" }
+
+mockWebServer = { group = "com.squareup.okhttp3", name = "mockwebserver", version.ref = "mockWebServer" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+junitJupiterApi = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junitJupiterApi" }
+orgJson = { group = "org.json", name = "json", version.ref = "orgJson" }
+coroutinesTest = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
+okio = { group = "com.squareup.okio", name = "okio", version.ref = "okio" }
+injiOpenid4vp = { group = "io.inji", name = "inji-openid4vp-aar", version.ref = "injiOpenid4vp" }
+
+[plugins]
+kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }

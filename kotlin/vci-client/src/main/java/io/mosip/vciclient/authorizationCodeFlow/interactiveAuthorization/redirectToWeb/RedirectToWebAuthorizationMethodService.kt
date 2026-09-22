@@ -1,5 +1,6 @@
 package io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.redirectToWeb
 
+import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.request.InitialRequest
 import io.mosip.vciclient.authorizationCodeFlow.implicitAuthorization.ImplicitAuthorizationRequestData
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.handler.AuthorizationMethodService
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.request.AuthorizationRequestData

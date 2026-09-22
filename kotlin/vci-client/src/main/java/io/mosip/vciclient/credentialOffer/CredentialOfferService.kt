@@ -6,12 +6,16 @@ import io.mosip.vciclient.exception.CredentialOfferFetchFailedException
 import io.mosip.vciclient.exception.VCIClientException
 import io.mosip.vciclient.networkManager.HttpMethod
 import io.mosip.vciclient.networkManager.NetworkManager
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.net.URI
 import java.net.URLDecoder
 
-internal class CredentialOfferService {
+internal class CredentialOfferService(
+     private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
+      private val defaultDispatcher: CoroutineDispatcher = Dispatchers.Default
+) {
 
     suspend fun fetchCredentialOffer(credentialOfferData: String): CredentialOffer {
         try {
@@ -69,7 +73,7 @@ internal class CredentialOfferService {
     }
 
     internal suspend fun handleByReferenceOffer(url: String): CredentialOffer {
-        val responseBody = withContext(Dispatchers.IO) {
+        val responseBody = withContext(ioDispatcher) {
             val response = NetworkManager.sendRequest(
                 url = url, method = HttpMethod.GET, headers = mapOf("Accept" to APPLICATION_JSON)
             )
@@ -81,7 +85,7 @@ internal class CredentialOfferService {
             response.body
         }
 
-        val credentialOffer = withContext(Dispatchers.Default) {
+        val credentialOffer = withContext(defaultDispatcher) {
             JsonUtils.deserialize(responseBody, CredentialOffer::class.java)
                 ?: throw CredentialOfferFetchFailedException("Invalid credential offer JSON")
         }

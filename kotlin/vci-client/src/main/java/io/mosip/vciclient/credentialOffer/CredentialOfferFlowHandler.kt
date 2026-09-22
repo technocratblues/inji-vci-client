@@ -1,5 +1,6 @@
 package io.mosip.vciclient.credentialOffer
 
+import com.google.gson.Gson
 import io.mosip.vciclient.proof.ProofBindingContext
 import io.mosip.vciclient.proof.toProofBindingContext
 import io.mosip.vciclient.authorizationCodeFlow.AuthorizationCodeFlowService
@@ -22,27 +23,44 @@ import io.mosip.vciclient.issuerMetadata.IssuerMetadataResult
 import io.mosip.vciclient.issuerMetadata.IssuerMetadataService
 import io.mosip.vciclient.preAuthCodeFlow.PreAuthCodeFlowService
 
+
+    private const val UNSUPPORTED_GRANT_TYPE_ERROR = "Credential offer does not contain a supported grant type"
+        
+    data class AuthorizationCodeRequestOptions(
+    val clientMetadata: ClientMetadata,
+    val authorizationMethods: List<AuthorizationMethod>,
+    val traceabilityId: String? = null,
+)
+
+data class CredentialTransactionOptions(
+    val getTxCode: TxCodeCallback?,
+    val getTokenResponse: TokenResponseCallback,
+    val onCheckIssuerTrust: CheckIssuerTrustCallback? = null,
+    val downloadTimeoutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
+    val dpopManager: DPoPManager = DPoPManager(),
+)
+
+data class CredentialDownloadRequest(
+    val authorizationCodeOptions: AuthorizationCodeRequestOptions,
+    val transactionOptions: CredentialTransactionOptions,
+)
+
 class CredentialOfferFlowHandler internal constructor(
     private val credentialOfferService: CredentialOfferService = CredentialOfferService(),
     private val issuerMetadataService: IssuerMetadataService = IssuerMetadataService(),
     private val preAuthFlowService: PreAuthCodeFlowService = PreAuthCodeFlowService(),
     private val authorizationCodeFlowService: AuthorizationCodeFlowService = AuthorizationCodeFlowService(),
 ) {
+
     suspend fun downloadCredentials(
         credentialOffer: String,
-        clientMetadata: ClientMetadata,
-        getTxCode: TxCodeCallback?,
-        getTokenResponse: TokenResponseCallback,
         getProofs: ProofsCallback,
-        authorizationMethods: List<AuthorizationMethod>,
-        onCheckIssuerTrust: CheckIssuerTrustCallback? = null,
-        downloadTimeoutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
-        traceabilityId: String? = null,
-        dpopManager: DPoPManager = DPoPManager(),
+        request: CredentialDownloadRequest,
     ): CredentialResponse {
-        val result = executeDownloadCredentials(
+          val transactionOptions = request.transactionOptions
+        return = executeDownloadCredentials(
             credentialOffer = credentialOffer,
-            onCheckIssuerTrust = onCheckIssuerTrust,
+            onCheckIssuerTrust = transactionOptions.onCheckIssuerTrust,
         ) { offer, issuerMetadataResponse, credentialConfigurationId, proofBindingContext ->
             when (issuerMetadataResponse.issuerMetadata.specVersion) {
                 OID4VCIVersion.V1 -> {
@@ -50,30 +68,30 @@ class CredentialOfferFlowHandler internal constructor(
                         preAuthFlowService.requestCredentials(
                             issuerMetadata = issuerMetadataResponse.issuerMetadata,
                             proofBindingContext = proofBindingContext,
-                            getTokenResponse = getTokenResponse,
+                            getTokenResponse = transactionOptions.getTokenResponse,
                             getProofs = getProofs,
                             credentialConfigurationId = credentialConfigurationId,
-                            getTxCode = getTxCode,
-                            downloadTimeoutInMillis = downloadTimeoutInMillis,
+                            getTxCode = transactionOptions.getTxCode,
+                            downloadTimeoutInMillis = transactionOptions.downloadTimeoutInMillis,
                             offer = offer,
-                            dpopManager = dpopManager
+                            dpopManager = transactionOptions.dpopManager
                         )
                     } else if (offer.isAuthorizationCodeFlow()) {
                         authorizationCodeFlowService.requestCredentials(
                             issuerMetadata = issuerMetadataResponse.issuerMetadata,
                             credentialConfigurationId = credentialConfigurationId,
-                            clientMetadata = clientMetadata,
-                            getTokenResponse = getTokenResponse,
+                            clientMetadata = request.authorizationOptions.clientMetadata,
+                            getTokenResponse = transactionOptions.getTokenResponse,
                             getProofs = getProofs,
-                            authorizationMethods = authorizationMethods,
+                            authorizationMethods = request.authorizationOptions.authorizationMethods,
                             credentialOffer = offer,
-                            downloadTimeOutInMillis = downloadTimeoutInMillis,
+                            downloadTimeOutInMillis = transactionOptions.downloadTimeoutInMillis,
                             proofBindingContext = proofBindingContext,
-                            traceabilityId = traceabilityId,
-                            dpopManager = dpopManager
+                            traceabilityId = request.authorizationOptions.traceabilityId,
+                            dpopManager = transactionOptions.dpopManager
                         )
                     } else {
-                        throw CredentialOfferFetchFailedException("Credential offer does not contain a supported grant type")
+                        throw CredentialOfferFetchFailedException(UNSUPPORTED_GRANT_TYPE_ERROR)
                     }
                 }
 
@@ -88,30 +106,30 @@ class CredentialOfferFlowHandler internal constructor(
                         preAuthFlowService.requestCredentialsDraft13(
                             issuerMetadata = issuerMetadataResponse.issuerMetadata,
                             proofBindingContext = proofBindingContext,
-                            getTokenResponse = getTokenResponse,
+                            getTokenResponse = transactionOptions.getTokenResponse,
                             getProofJwt = proofJwtCallback,
                             credentialConfigurationId = credentialConfigurationId,
-                            getTxCode = getTxCode,
-                            downloadTimeoutInMillis = downloadTimeoutInMillis,
+                            getTxCode = transactionOptions.getTxCode,
+                            downloadTimeoutInMillis = transactionOptions.downloadTimeoutInMillis,
                             offer = offer,
-                            dpopManager = dpopManager
+                            dpopManager = transactionOptions.dpopManager
                         )
                     } else if (offer.isAuthorizationCodeFlow()) {
                         authorizationCodeFlowService.requestCredentialsDraft13(
                             issuerMetadata = issuerMetadataResponse.issuerMetadata,
                             credentialConfigurationId = credentialConfigurationId,
-                            clientMetadata = clientMetadata,
-                            getTokenResponse = getTokenResponse,
+                            clientMetadata = request.authorizationOptions.clientMetadata,
+                            getTokenResponse = transactionOptions.getTokenResponse,
                             getProofJwt = proofJwtCallback,
-                            authorizationMethods = authorizationMethods,
+                            authorizationMethods = request.authorizationOptions.authorizationMethods,
                             credentialOffer = offer,
-                            downloadTimeOutInMillis = downloadTimeoutInMillis,
+                            downloadTimeOutInMillis = transactionOptions.downloadTimeoutInMillis,
                             proofBindingContext = proofBindingContext,
-                            traceabilityId = traceabilityId,
-                            dpopManager = dpopManager
+                            traceabilityId =  .request.authorizationOptions.traceabilityId,
+                            dpopManager = transactionOptions.dpopManager
                         )
                     } else {
-                        throw CredentialOfferFetchFailedException("Credential offer does not contain a supported grant type")
+                        throw CredentialOfferFetchFailedException(UNSUPPORTED_GRANT_TYPE_ERROR)
                     }
                     if(draft13Response.credential.isJsonNull)
                     {
@@ -125,19 +143,12 @@ class CredentialOfferFlowHandler internal constructor(
                 }
             }
         }
-        return result
     }
 
     suspend fun downloadCredentialsDraft13(
         credentialOffer: String,
-        clientMetadata: ClientMetadata,
-        getTxCode: TxCodeCallback?,
-        getTokenResponse: TokenResponseCallback,
         getProofJwt: ProofJwtCallback,
-        authorizationMethods: List<AuthorizationMethod>,
-        onCheckIssuerTrust: CheckIssuerTrustCallback? = null,
-        downloadTimeoutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
-        traceabilityId: String? = null,
+        request: CredentialDownloadRequest,
     ): CredentialResponseDraft13 {
         val result = executeDownloadCredentials(
             credentialOffer = credentialOffer,
@@ -150,8 +161,8 @@ class CredentialOfferFlowHandler internal constructor(
                     getTokenResponse = getTokenResponse,
                     getProofJwt = getProofJwt,
                     credentialConfigurationId = credentialConfigurationId,
-                    getTxCode = getTxCode,
-                    downloadTimeoutInMillis = downloadTimeoutInMillis,
+                    getTxCode = request.transactionOptions.getTxCode,
+                    downloadTimeoutInMillis =  request.transactionOptions.downloadTimeoutInMillis,
                     offer = offer
                 )
             } else if (offer.isAuthorizationCodeFlow()) {
@@ -161,14 +172,14 @@ class CredentialOfferFlowHandler internal constructor(
                     clientMetadata = clientMetadata,
                     getTokenResponse = getTokenResponse,
                     getProofJwt = getProofJwt,
-                    authorizationMethods = authorizationMethods,
+                    authorizationMethods =  request.authorizationCodeOptions.authorizationMethods,
                     credentialOffer = offer,
-                    downloadTimeOutInMillis = downloadTimeoutInMillis,
+                    downloadTimeOutInMillis =  request.transactionOptions.downloadTimeoutInMillis,
                     proofBindingContext = proofBindingContext,
-                    traceabilityId = traceabilityId
+                    traceabilityId = request.authorizationCodeOptions.traceabilityId
                 )
             } else {
-                throw CredentialOfferFetchFailedException("Credential offer does not contain a supported grant type")
+                throw CredentialOfferFetchFailedException(UNSUPPORTED_GRANT_TYPE_ERROR)
             }
         }
         if (result.credential.isJsonNull) {
@@ -193,8 +204,14 @@ class CredentialOfferFlowHandler internal constructor(
             offer.credentialIssuer,
             credentialConfigurationId
         )
-        val issuerDisplay =
-            issuerMetadataResponse.raw["display"] as? List<Map<String, Any>> ?: listOf(emptyMap())
+       val issuerDisplay = try {
+            Gson().fromJson(
+                Gson().toJson(issuerMetadataResponse.raw["display"]),
+                Array<Map<String, Any>>::class.java
+            ).toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
 
         ensureIssuerTrust(
             credentialIssuer = offer.credentialIssuer,

@@ -16,23 +16,33 @@ import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import java.net.InetAddress
 
 class NonceServiceTest {
     private lateinit var server: MockWebServer
     private lateinit var nonceService: NonceService
 
+   // @Before
+    //fun setUp() {
+      //  server = MockWebServer()
+       // server.start()
+       // nonceService = NonceService()
+    //}
     @Before
-    fun setUp() {
-        server = MockWebServer()
-        server.start()
-        nonceService = NonceService()
-    }
+fun setUp() {
+    server = MockWebServer()
+    server.start(InetAddress.getByName("127.0.0.1"), 0)
+    nonceService = NonceService()
+}
 
     @After
     fun tearDown() {
         server.shutdown()
     }
 
+private fun serverUrl(path: String): String =
+    "http://127.0.0.1:${server.port}$path"
+    
     @Test
     fun `fetchNonce should return null when issuer does not expose nonce endpoint`() = runBlocking {
         val issuerMetadata = issuerMetadata(nonceEndpoint = null)
@@ -53,7 +63,7 @@ class NonceServiceTest {
 
         val nonce = nonceService.fetchNonce(
             issuerMetadata = issuerMetadata(
-                nonceEndpoint = server.url("/nonce").toString()
+                nonceEndpoint = serverUrl("/nonce")
             )
         )
 
@@ -79,7 +89,7 @@ class NonceServiceTest {
             runBlocking {
                 nonceService.fetchNonce(
                     issuerMetadata = issuerMetadata(
-                        nonceEndpoint = server.url("/nonce").toString()
+                        nonceEndpoint = serverUrl("/nonce")
                     )
                 )
             }
@@ -105,7 +115,7 @@ class NonceServiceTest {
         }
 
         val nonce = nonceService.fetchNonce(
-            issuerMetadata = issuerMetadata(nonceEndpoint = server.url("/nonce").toString()),
+            issuerMetadata = issuerMetadata(nonceEndpoint = serverUrl("/nonce")),
             dpopManager = dpopManager
         )
 
@@ -132,7 +142,7 @@ class NonceServiceTest {
         }
 
         nonceService.fetchNonce(
-            issuerMetadata = issuerMetadata(nonceEndpoint = server.url("/nonce").toString()),
+            issuerMetadata = issuerMetadata(nonceEndpoint = serverUrl("/nonce")),
             dpopManager = dpopManager
         )
 

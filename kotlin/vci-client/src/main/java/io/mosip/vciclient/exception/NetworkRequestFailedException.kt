@@ -2,6 +2,8 @@ package io.mosip.vciclient.exception
 
 import okhttp3.Headers
 
+private const val NETWORK_REQUEST_FAILED_CODE = "VCI-006"
+
 class NetworkRequestFailedException : VCIClientException {
 
     var httpStatusCode: Int? = null
@@ -10,7 +12,7 @@ class NetworkRequestFailedException : VCIClientException {
         private set
 
     constructor(message: String?) : super(
-        code = "VCI-006",
+        code = NETWORK_REQUEST_FAILED_CODE,
         message = "Network request failed, details - $message"
     )
 
@@ -20,7 +22,7 @@ class NetworkRequestFailedException : VCIClientException {
         issuerErrorDescription: String? = null,
         cause: Throwable? = null
     ) : super(
-        code = "VCI-006",
+        code = NETWORK_REQUEST_FAILED_CODE,
         message = "Network request failed, details - $message",
         issuerErrorCode = issuerErrorCode,
         issuerErrorDescription = issuerErrorDescription,
@@ -35,7 +37,7 @@ class NetworkRequestFailedException : VCIClientException {
         issuerErrorDescription: String? = null,
         cause: Throwable? = null
     ) : super(
-        code = "VCI-006",
+        code = NETWORK_REQUEST_FAILED_CODE,
         message = "Network request failed, details - $message",
         issuerErrorCode = issuerErrorCode,
         issuerErrorDescription = issuerErrorDescription,
@@ -44,4 +46,5 @@ class NetworkRequestFailedException : VCIClientException {
         this.httpStatusCode = httpStatusCode
         this.headers = headers
     }
-}
+
+    }

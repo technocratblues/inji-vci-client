@@ -19,7 +19,6 @@ import io.mosip.vciclient.credentialOffer.CredentialOffer
 import io.mosip.vciclient.dpop.DPoPManager
 import io.mosip.vciclient.exception.DownloadFailedException
 import io.mosip.vciclient.exception.VCIClientException
-import io.mosip.vciclient.issuerMetadata.IssuerMetadata
 import io.mosip.vciclient.nonce.NonceService
 import io.mosip.vciclient.pkce.PKCESessionManager
 import io.mosip.vciclient.proof.ProofBindingContext
@@ -27,6 +26,27 @@ import io.mosip.vciclient.proof.jwt.JWTProof
 import io.mosip.vciclient.token.TokenResponse
 import io.mosip.vciclient.token.TokenService
 import java.util.logging.Logger
+
+internal data class CredentialRequestConfiguration(
+    val issuerMetadata: IssuerMetadata,
+    val credentialConfigurationId: String,
+    val clientMetadata: ClientMetadata,
+    val authorizationMethods: List<AuthorizationMethod>,
+)
+
+internal data class CredentialRequestOptions(
+    val proofBindingContext: ProofBindingContext,
+    val credentialOffer: CredentialOffer? = null,
+    val downloadTimeoutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
+    val traceabilityId: String? = null,
+    val dpopManager: DPoPManager = DPoPManager(),
+)
+
+internal data class AuthorizationCodeCredentialRequest(
+    val configuration: CredentialRequestConfiguration,
+    val options: CredentialRequestOptions,
+    val getTokenResponse: TokenResponseCallback,
+)
 
 internal class AuthorizationCodeFlowService(
     private val authorizationServerResolver: AuthorizationServerResolver = AuthorizationServerResolver(),
@@ -38,45 +58,34 @@ internal class AuthorizationCodeFlowService(
 ) {
     private val logger: Logger = Logger.getLogger(javaClass.simpleName)
 
-    suspend fun requestCredentials(
-        issuerMetadata: IssuerMetadata,
-        credentialConfigurationId: String,
-        clientMetadata: ClientMetadata,
-        getTokenResponse: TokenResponseCallback,
+ suspend fun requestCredentials(
+        request: AuthorizationCodeCredentialRequest,
         getProofs: ProofsCallback,
-        authorizationMethods: List<AuthorizationMethod>,
-        credentialOffer: CredentialOffer? = null,
-        downloadTimeOutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
-        proofBindingContext: ProofBindingContext,
-        traceabilityId: String? = null,
-        dpopManager: DPoPManager = DPoPManager(),
     ): CredentialResponse {
-        return executeRequestCredentials(
-            issuerMetadata = issuerMetadata,
-            credentialConfigurationId = credentialConfigurationId,
-            clientMetadata = clientMetadata,
-            getTokenResponse = getTokenResponse,
-            authorizationMethods = authorizationMethods,
-            credentialOffer = credentialOffer,
-            downloadTimeOutInMillis = downloadTimeOutInMillis,
-            traceabilityId = traceabilityId,
-            dpopManager = dpopManager,
-        ) { token ->
+        return executeRequestCredentials(request) { token ->
+            val configuration = request.configuration
+            val options = request.options
+
             val nonce = resolveNonce(
-                issuerMetadata = issuerMetadata,
-                timeoutInMillis = downloadTimeOutInMillis,
-                dpopManager = dpopManager
+                issuerMetadata = configuration.issuerMetadata,
+                timeoutInMillis = options.downloadTimeoutInMillis,
+                dpopManager = options.dpopManager,
             )
+
             val proofs = try {
                 getProofs(
-                    proofBindingContext.toCredentialRequestProofMetadata(issuerMetadata.credentialIssuer, nonce)
+                    options.proofBindingContext.toCredentialRequestProofMetadata(
+                        configuration.issuerMetadata.credentialIssuer,
+                        nonce,
+                    ),
                 )
             } catch (e: Exception) {
                 throw DownloadFailedException(
                     "Failed to obtain proofs from callback: ${e.message}",
-                    cause = e
+                    cause = e,
                 )
             }
+
 
             credentialExecutor.requestCredential(
                 issuerMetadata = issuerMetadata,
@@ -91,38 +100,25 @@ internal class AuthorizationCodeFlowService(
     }
 
     suspend fun requestCredentialsDraft13(
-        issuerMetadata: IssuerMetadata,
-        credentialConfigurationId: String,
-        clientMetadata: ClientMetadata,
-        getTokenResponse: TokenResponseCallback,
+        request: AuthorizationCodeCredentialRequest,
         getProofJwt: ProofJwtCallback,
-        authorizationMethods: List<AuthorizationMethod>,
-        credentialOffer: CredentialOffer? = null,
-        downloadTimeOutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
-        proofBindingContext: ProofBindingContext,
-        traceabilityId: String? = null,
-        dpopManager: DPoPManager = DPoPManager(),
     ): CredentialResponseDraft13 {
-        return executeRequestCredentials(
-            issuerMetadata = issuerMetadata,
-            credentialConfigurationId = credentialConfigurationId,
-            clientMetadata = clientMetadata,
-            getTokenResponse = getTokenResponse,
-            authorizationMethods = authorizationMethods,
-            credentialOffer = credentialOffer,
-            downloadTimeOutInMillis = downloadTimeOutInMillis,
-            traceabilityId = traceabilityId,
-            dpopManager = dpopManager,
-        ) { token ->
+        return executeRequestCredentials(request) { token ->
+            val configuration = request.configuration
+            val options = request.options
             val nonce = NonceService.extractNonceFromTokenResponse(token)
+
             val jwt = try {
                 getProofJwt(
-                    proofBindingContext.toCredentialRequestProofMetadata(issuerMetadata.credentialIssuer, nonce)
+                    options.proofBindingContext.toCredentialRequestProofMetadata(
+                        configuration.issuerMetadata.credentialIssuer,
+                        nonce,
+                    ),
                 )
             } catch (e: Exception) {
                 throw DownloadFailedException(
                     "Failed to obtain proof JWT from callback: ${e.message}",
-                    cause = e
+                    cause = e,
                 )
             }
 
@@ -137,51 +133,44 @@ internal class AuthorizationCodeFlowService(
             )
         }
     }
-
-    private suspend fun <Response> executeRequestCredentials(
-        issuerMetadata: IssuerMetadata,
-        credentialConfigurationId: String,
-        clientMetadata: ClientMetadata,
-        getTokenResponse: TokenResponseCallback,
-        authorizationMethods: List<AuthorizationMethod>,
-        credentialOffer: CredentialOffer?,
-        downloadTimeOutInMillis: Long,
-        traceabilityId: String?,
-        dpopManager: DPoPManager,
+ private suspend fun <Response> executeRequestCredentials(
+        request: AuthorizationCodeCredentialRequest,
         requestCredential: suspend (TokenResponse) -> Response?,
     ): Response {
+        val configuration = request.configuration
+        val options = request.options
+
         try {
             val pkceSession = pkceSessionManager.createSession()
 
             val authorizationServerMetadata = try {
-                authorizationServerResolver.resolveForAuthCode(issuerMetadata, credentialOffer)
+                authorizationServerResolver.resolveForAuthCode(
+                    configuration.issuerMetadata,
+                    options.credentialOffer,
+                )
             } catch (e: DownloadFailedException) {
                 throw e
             } catch (e: VCIClientException) {
                 throw DownloadFailedException(
-                    "Failed to resolve authorization server metadata for issuer ${issuerMetadata.credentialIssuer}: ${e.message} ",
+                    "Failed to resolve authorization server metadata for issuer " +
+                        "${configuration.issuerMetadata.credentialIssuer}: ${e.message}",
                     issuerErrorCode = e.issuerErrorCode,
                     issuerErrorDescription = e.issuerErrorDescription,
-                    cause = e
+                    cause = e,
                 )
             } catch (e: Exception) {
                 throw DownloadFailedException(
-                    "Failed to resolve authorization server metadata for issuer ${issuerMetadata.credentialIssuer}: ${e.message}",
-                    cause = e
+                    "Failed to resolve authorization server metadata for issuer " +
+                        "${configuration.issuerMetadata.credentialIssuer}: ${e.message}",
+                    cause = e,
                 )
             }
-
             val token = try {
                 performAuthorizationAndGetToken(
                     authorizationServerMetadata = authorizationServerMetadata,
-                    issuerMetadata = issuerMetadata,
-                    clientMetadata = clientMetadata,
+                    request = request,
                     pkceSession = pkceSession,
-                    getTokenResponse = getTokenResponse,
-                    credentialConfigurationId = credentialConfigurationId,
-                    authorizationMethods = authorizationMethods,
-                    traceabilityId = traceabilityId,
-                    dpopManager = dpopManager
+                    
                 )
             } catch (e: DownloadFailedException) {
                 throw e
@@ -213,41 +202,31 @@ internal class AuthorizationCodeFlowService(
         } catch (e: Exception) {
             throw DownloadFailedException(
                 "Download failed via authorization code flow: ${e.message}"
+                cause = e,
             )
         }
     }
 
     private suspend fun performAuthorizationAndGetToken(
         authorizationServerMetadata: AuthorizationServerMetadata,
-        issuerMetadata: IssuerMetadata,
-        clientMetadata: ClientMetadata,
-        pkceSession: PKCESessionManager.PKCESession,
-        getTokenResponse: TokenResponseCallback,
-        credentialConfigurationId: String,
-        authorizationMethods: List<AuthorizationMethod>,
-        traceabilityId: String? = null,
-        dpopManager: DPoPManager,
+        request: AuthorizationCodeCredentialRequest,
+        pkceSession: PKCESessionManager.PKCESession,,
     ): TokenResponse {
-        val tokenEndpoint = issuerMetadata.tokenEndpoint
+        val tokenEndpoint = configuration.issuerMetadata.tokenEndpoint
             ?: authorizationServerMetadata.tokenEndpoint
             ?: throw DownloadFailedException(
-                "Missing token endpoint for issuer ${issuerMetadata.credentialIssuer}"
+                "Missing token endpoint for issuer ${configuration.issuerMetadata.credentialIssuer}"
             )
 
-        dpopManager.initialize(
+        options.dpopManager.initialize(
             tokenEndpoint,
             authorizationServerMetadata.dpopSigningAlgValuesSupported
         )
 
         val authCode = obtainAuthorizationCode(
             authorizationServerMetadata = authorizationServerMetadata,
-            issuerMetadata = issuerMetadata,
-            clientMetadata = clientMetadata,
+            request = request,
             pkceSession = pkceSession,
-            credentialConfigurationId = credentialConfigurationId,
-            authorizationMethods = authorizationMethods,
-            traceabilityId = traceabilityId,
-            dpopManager = dpopManager
         )
 
         return try {
@@ -263,6 +242,7 @@ internal class AuthorizationCodeFlowService(
         } catch (e: Exception) {
             throw DownloadFailedException(
                 "Failed to exchange authorization code for access token at $tokenEndpoint: ${e.message}",
+                cause = e,
             )
         }
     }
@@ -285,13 +265,8 @@ internal class AuthorizationCodeFlowService(
 
     private suspend fun obtainAuthorizationCode(
         authorizationServerMetadata: AuthorizationServerMetadata,
-        issuerMetadata: IssuerMetadata,
-        clientMetadata: ClientMetadata,
+        request: AuthorizationCodeCredentialRequest
         pkceSession: PKCESessionManager.PKCESession,
-        credentialConfigurationId: String,
-        authorizationMethods: List<AuthorizationMethod>,
-        traceabilityId: String? = null,
-        dpopManager: DPoPManager,
     ): String {
         val interactiveEndpoint =
             authorizationServerMetadata.interactiveAuthorizationEndpoint?.trim()
@@ -307,13 +282,8 @@ internal class AuthorizationCodeFlowService(
             try {
                 obtainAuthorizationCodeViaInteractiveAuthorizationEndpoint(
                     endpoint = interactiveEndpoint,
-                    issuerMetadata = issuerMetadata,
-                    clientMetadata = clientMetadata,
+                    request = request,
                     pkceSession = pkceSession,
-                    credentialConfigurationId = credentialConfigurationId,
-                    authorizationMethods = authorizationMethods,
-                    dpopManager = dpopManager,
-                    traceabilityId = traceabilityId
                 )
             } catch (e: DownloadFailedException) {
                 if (
@@ -326,11 +296,8 @@ internal class AuthorizationCodeFlowService(
 
                     obtainAuthorizationCodeViaAuthorizationEndpoint(
                         authorizationServerMetadata = authorizationServerMetadata,
-                        issuerMetadata = issuerMetadata,
-                        clientMetadata = clientMetadata,
+                        request = request,
                         pkceSession = pkceSession,
-                        authorizationMethods = authorizationMethods,
-                        dpopManager = dpopManager
                     )
                 } else {
                     throw e
@@ -339,24 +306,19 @@ internal class AuthorizationCodeFlowService(
         } else {
             obtainAuthorizationCodeViaAuthorizationEndpoint(
                 authorizationServerMetadata = authorizationServerMetadata,
-                issuerMetadata = issuerMetadata,
-                clientMetadata = clientMetadata,
+                request = request,
                 pkceSession = pkceSession,
-                authorizationMethods = authorizationMethods,
-                dpopManager = dpopManager
             )
         }
     }
 private suspend fun obtainAuthorizationCodeViaInteractiveAuthorizationEndpoint(
     endpoint: String,
-    issuerMetadata: IssuerMetadata,
-    clientMetadata: ClientMetadata,
+    request: AuthorizationCodeCredentialRequest,
     pkceSession: PKCESessionManager.PKCESession,
-    credentialConfigurationId: String,
-    authorizationMethods: List<AuthorizationMethod>,
-    dpopManager: DPoPManager,
-    traceabilityId: String? = null,
 ): String {
+     val configuration = request.configuration
+        val options = request.options
+
         val response = try {
             interactiveAuthorizationHandler.handle(
                 endpoint = endpoint,
@@ -391,22 +353,33 @@ private suspend fun obtainAuthorizationCodeViaInteractiveAuthorizationEndpoint(
 
     private suspend fun obtainAuthorizationCodeViaAuthorizationEndpoint(
         authorizationServerMetadata: AuthorizationServerMetadata,
-        issuerMetadata: IssuerMetadata,
-        clientMetadata: ClientMetadata,
+         request: AuthorizationCodeCredentialRequest,
         pkceSession: PKCESessionManager.PKCESession,
-        authorizationMethods: List<AuthorizationMethod>,
-        dpopManager: DPoPManager,
     ): String {
+        val configuration = request.configuration
+        val options = request.options
+
         val authorizationEndpoint = authorizationServerMetadata.authorizationEndpoint
             ?: throw DownloadFailedException(
                 "Missing authorization endpoint for issuer ${issuerMetadata.credentialIssuer}"
             )
 
         val redirectToWebAuthMethod =
-            authorizationMethods
+            configuration.authorizationMethods
                 .firstOrNull { it is AuthorizationMethod.RedirectToWeb } as? AuthorizationMethod.RedirectToWeb
 
         if (redirectToWebAuthMethod != null) {
+             configuration.authorizationMethods
+                .firstOrNull { it is AuthorizationMethod.RedirectToWeb }
+                as? AuthorizationMethod.RedirectToWeb
+
+        if (redirectToWebAuthMethod == null) {
+            throw DownloadFailedException(
+                "No authorization method available to obtain authorization code from " +
+                    authorizationEndpoint,
+            )
+        }
+
             logger.info(
                 "Using non-interactive authorization endpoint: $authorizationEndpoint " +
                     "(redirect_to_web) for issuer=${issuerMetadata.credentialIssuer}"
@@ -443,13 +416,9 @@ private suspend fun obtainAuthorizationCodeViaInteractiveAuthorizationEndpoint(
             }
             return response.authorizationCode
                 ?: throw DownloadFailedException(
-                    "Authorization code not received from non-interactive authorization endpoint $authorizationEndpoint"
+                    "Authorization code not received from non-interactive authorization endpoint" + authorizationEndpoint,
                 )
-        } else {
-            throw DownloadFailedException(
-                "No authorization method available to obtain authorization code from $authorizationEndpoint"
-            )
-        }
+        } 
     }
 
     private suspend fun resolveNonce(

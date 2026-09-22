@@ -23,8 +23,8 @@ data class PresentationInteractionResponse(
             "Unsupported interaction type: $type. Expected OpenId4VpPresentation or OpenId4VpPresentationIAE."
         }
 
-        if (openid4vpRequest.isEmpty()) {
-            throw IllegalArgumentException("openid4vpRequest must not be empty")
+        require(openid4vpRequest.isNotEmpty()) {
+            "openid4vpRequest must not be empty"
         }
     }
 }

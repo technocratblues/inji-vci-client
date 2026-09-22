@@ -11,6 +11,8 @@ import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.handler
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.handler.InteractionType
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.request.AuthorizationRequestData
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.response.AuthorizationResponse
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
 import io.mosip.vciclient.common.JsonUtils
 import io.mosip.vciclient.common.Util
 import io.mosip.vciclient.constants.Constants.APPLICATION_X_WWW_FORM_URLENCODED
@@ -19,7 +21,7 @@ import io.mosip.vciclient.exception.InteractiveAuthorizationException
 import io.mosip.vciclient.exception.VCIClientException
 import io.mosip.vciclient.networkManager.HttpMethod
 import io.mosip.vciclient.networkManager.NetworkManager
-import kotlinx.coroutines.Dispatchers
+//import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.logging.Logger
 
@@ -34,6 +36,7 @@ class PresentationDuringIssuanceAuthorizationMethodService : AuthorizationMethod
 
     private val logTag: String
     private val logger: Logger
+    private val ioDispatcher: CoroutineDispatcher
 
     constructor(
         selectCredentialsForPresentation: suspend (ovpRequest: AuthorizationRequest) -> Map<String, List<Credential>>,
@@ -43,6 +46,7 @@ class PresentationDuringIssuanceAuthorizationMethodService : AuthorizationMethod
         traceabilityId: String? = null,
         openid4vpWalletConfig: WalletConfig,
         openId4vp: OpenID4VP? = null,
+            ioDispatcher: CoroutineDispatcher = Dispatchers.IO,
     ) {
         this.selectCredentialsForPresentation = selectCredentialsForPresentation
         this.signVerifiablePresentation = signVerifiablePresentation
@@ -54,6 +58,7 @@ class PresentationDuringIssuanceAuthorizationMethodService : AuthorizationMethod
         )
         this.logTag = Util.getLogTag(javaClass.simpleName, traceabilityId)
         this.logger = Logger.getLogger(logTag)
+        this.ioDispatcher = ioDispatcher
     }
 
    override fun type(): String = InteractionType.OpenId4VpPresentationIAE.value
@@ -107,17 +112,16 @@ class PresentationDuringIssuanceAuthorizationMethodService : AuthorizationMethod
 
     private fun validatePresentationRequest(request: Map<String, Any>): AuthorizationRequest {
         val authorizationRequest = openId4vp.authenticateVerifier(request)
-       if (
-    authorizationRequest.responseMode !in listOf(
+       require (
+    authorizationRequest.responseMode in listOf(
         "iar-post",
         "iar-post.jwt",
         "iae_post",
         "iae_post.jwt"
     )
 ) {
-    throw IllegalArgumentException(
         "response_mode must be 'iar-post', 'iar-post.jwt', 'iae_post' or 'iae_post.jwt'"
-    )
+    
 }
         return authorizationRequest
     }
@@ -155,7 +159,7 @@ class PresentationDuringIssuanceAuthorizationMethodService : AuthorizationMethod
         )
 
         val networkResponse = try {
-            withContext(Dispatchers.IO) {
+            withContext(ioDispatcher) {
                 NetworkManager.sendRequest(
                     url = iar,
                     method = HttpMethod.POST,

@@ -120,21 +120,21 @@ object NetworkManager {
 
 
     private fun parseServerErrorResponse(responseBody: String): Pair<String?, String?> {
-        var issuerErrorCode: String? = null
-        var issuerErrorDescription: String? = null
+    return try {
+        val json = JSONObject(responseBody)
 
-        try {
-            val json = JSONObject(responseBody)
-            issuerErrorCode = json.optString(ERROR_CODE)
-            issuerErrorDescription = json.optString(ERROR_DESCRIPTION)
+        Pair(
+            json.optString(ERROR_CODE),
+            json.optString(ERROR_DESCRIPTION)
+        )
+    } catch (_: Exception) {
+        Logger.getLogger(NetworkManager::class.java.name)
+            .warning("Failed to parse server error response")
 
-        } catch (_: Exception) {
-            Logger.getLogger(NetworkManager::class.java.name)
-                .warning("Failed to parse server error response")
-            return Pair(null, responseBody)
-        }
-        return Pair(issuerErrorCode, issuerErrorDescription)
+        Pair(null, responseBody)
     }
+    }
+
 }
 
 data class NetworkResponse(

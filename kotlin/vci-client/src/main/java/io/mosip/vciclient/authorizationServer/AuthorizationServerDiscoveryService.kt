@@ -6,14 +6,18 @@ import io.mosip.vciclient.constants.Constants
 import io.mosip.vciclient.exception.AuthorizationServerDiscoveryException
 import io.mosip.vciclient.networkManager.HttpMethod
 import io.mosip.vciclient.networkManager.NetworkManager
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+//import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.logging.Logger
 
 private const val OAUTH_WELL_KNOWN_URI_SUFFIX = "/.well-known/oauth-authorization-server"
 private const val OPENID_WELL_KNOWN_URI_SUFFIX = "/.well-known/openid-configuration"
 
-class AuthorizationServerDiscoveryService {
+class AuthorizationServerDiscoveryService( 
+    private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+){
     private val logger = Logger.getLogger(javaClass.simpleName)
 
     /**
@@ -21,7 +25,7 @@ class AuthorizationServerDiscoveryService {
      * (oauth-authorization-server first, then openid-configuration), trying each candidate URL
      * until one returns parseable metadata.
      */
-    suspend fun discover(baseUrl: String): AuthorizationServerMetadata = withContext(Dispatchers.IO) {
+    suspend fun discover(baseUrl: String): AuthorizationServerMetadata = withContext(ioDispatcher) {
         for (wellKnownUrl in buildCandidateWellKnownUrls(baseUrl)) {
             try {
                 val response = NetworkManager.sendRequest(

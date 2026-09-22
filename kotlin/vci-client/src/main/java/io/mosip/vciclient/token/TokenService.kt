@@ -3,8 +3,19 @@ package io.mosip.vciclient.token
 import io.mosip.vciclient.constants.GrantType
 import io.mosip.vciclient.constants.TokenResponseCallback
 import io.mosip.vciclient.dpop.DPoPManager
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
+
+data class TokenRequestParams(
+    val grantType: GrantType,
+    val getTokenResponse: TokenResponseCallback,
+    val tokenEndpoint: String,
+    val preAuthCode: String? = null,
+    val txCode: String? = null,
+    val authCode: String? = null,
+    val clientId: String? = null,
+    val redirectUri: String? = null,
+    val codeVerifier: String? = null,
+    val dpopManager: DPoPManager = DPoPManager(),
+)
 
 class TokenService {
     suspend fun getAccessToken(
@@ -31,6 +42,7 @@ class TokenService {
         codeVerifier: String? = null,
         dpopManager: DPoPManager = DPoPManager(),
     ): TokenResponse = obtainAccessToken(
+        TokenRequestParams(
         grantType = GrantType.AUTHORIZATION_CODE,
         getTokenResponse = getTokenResponse,
         tokenEndpoint = tokenEndpoint,
@@ -40,20 +52,16 @@ class TokenService {
         codeVerifier = codeVerifier,
         dpopManager = dpopManager
     )
+    )
 
     private suspend fun obtainAccessToken(
-        grantType: GrantType,
-        getTokenResponse: TokenResponseCallback,
-        tokenEndpoint: String,
-        preAuthCode: String? = null,
-        txCode: String? = null,
-        authCode: String? = null,
-        clientId: String? = null,
-        redirectUri: String? = null,
-        codeVerifier: String? = null,
-        dpopManager: DPoPManager = DPoPManager(),
+        params: TokenRequestParams
     ): TokenResponse {
-        val dpopProof = if (dpopManager.isInitialized) dpopManager.generateTokenProof() else null
+        val dpopProof = if (params.dpopManager.isInitialized) {
+            params.dpopManager.generateTokenProof()
+        } else {
+            null
+        }
         val tokenRequest = TokenRequest(
             grantType,
             tokenEndpoint,
@@ -65,10 +73,7 @@ class TokenService {
             codeVerifier,
             dpopProof
         )
-        return withContext(Dispatchers.IO) {
-            getTokenResponse(
-                tokenRequest
-            )
+        
+            getTokenResponse(tokenRequest )
         }
-    }
 }

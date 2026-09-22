@@ -14,16 +14,16 @@ abstract class InteractionResponse(
     }
 
     private fun validateCommonFields() {
-        if (status.isNullOrBlank()) {
-            throw IllegalArgumentException("Missing or empty 'status' field")
+        require (!status.isNullOrBlank()) {
+            "Missing or empty 'status' field"
         }
 
         if (status == "require_interaction") {
-            if (type.isNullOrBlank()) {
-                throw IllegalArgumentException("'type' is required when status is 'require_interaction'")
+            require (!type.isNullOrBlank()) {
+                "'type' is required when status is 'require_interaction'"
             }
-            if (authSession.isNullOrBlank()) {
-                throw IllegalArgumentException("'authSession' is required when status is 'require_interaction'")
+            require(!authSession.isNullOrBlank()) {
+                "'authSession' is required when status is 'require_interaction'"
             }
         }
     }

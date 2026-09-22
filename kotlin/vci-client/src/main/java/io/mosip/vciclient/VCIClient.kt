@@ -18,6 +18,10 @@ import io.mosip.vciclient.trustedIssuer.TrustedIssuerFlowHandler
 import java.util.logging.Logger
 
 class VCIClient(val traceabilityId: String) {
+    
+    Companion object{
+        private const val VCI_ERROR_CODE = "VCI-010"
+    }
 
     private val logTag = Util.getLogTag(javaClass.simpleName, traceabilityId)
     private val logger = Logger.getLogger(logTag)
@@ -33,7 +37,7 @@ class VCIClient(val traceabilityId: String) {
             return dpopManager.generateTokenProof(dpopNonce)
         } catch (e: VCIClientException) {
             throw VCIClientException(
-                "VCI-010",
+                VCI_ERROR_CODE,
                 e.message,
                 cause = e,
                 issuerErrorCode = e.issuerErrorCode,
@@ -50,7 +54,7 @@ class VCIClient(val traceabilityId: String) {
         } catch (exception: VCIClientException) {
             logger.severe("Fetching issuer metadata failed due to ${exception.message}")
             throw VCIClientException(
-                "VCI-010",
+                VCI_ERROR_CODE,
                 exception.message,
                 cause = exception,
                 issuerErrorCode = exception.issuerErrorCode,
@@ -58,7 +62,7 @@ class VCIClient(val traceabilityId: String) {
             )
         } catch (e: Exception) {
             logger.severe("Fetching issuer metadata failed due to ${e.message}")
-            throw VCIClientException("VCI-010", "Unknown Exception - ${e.message}")
+            throw VCIClientException(VCI_ERROR_CODE, "Unknown Exception - ${e.message}")
         }
     }
 
@@ -70,7 +74,7 @@ class VCIClient(val traceabilityId: String) {
                 "Fetching credentialConfigurationsSupported from issuer metadata failed due to ${exception.message}"
             )
             throw VCIClientException(
-                "VCI-010",
+                VCI_ERROR_CODE,
                 exception.message,
                 cause = exception,
                 issuerErrorCode = exception.issuerErrorCode,
@@ -78,7 +82,7 @@ class VCIClient(val traceabilityId: String) {
             )
         } catch (e: Exception) {
             logger.severe("Fetching credentialConfigurationsSupported from issuer metadata failed")
-            throw VCIClientException("VCI-010", "Unknown Exception - ${e.message}", cause = e)
+            throw VCIClientException(VCI_ERROR_CODE, "Unknown Exception - ${e.message}", cause = e)
         }
     }
 
@@ -115,7 +119,7 @@ class VCIClient(val traceabilityId: String) {
             )
         } catch (e: Exception) {
             logger.severe("Downloading credential failed due to ${e.message}")
-            throw VCIClientException("VCI-010", "Unknown Exception - ${e.message}")
+            throw VCIClientException(VCI_ERROR_CODE, "Unknown Exception - ${e.message}")
         } finally {
             dpopManager.reset()
         }
@@ -156,7 +160,7 @@ class VCIClient(val traceabilityId: String) {
             )
         } catch (e: Exception) {
             logger.severe("Downloading credential failed due to ${e.message}")
-            throw VCIClientException("VCI-010", "Unknown Exception - ${e.message}")
+            throw VCIClientException(VCI_ERROR_CODE, "Unknown Exception - ${e.message}")
         } finally {
             dpopManager.reset()
         }

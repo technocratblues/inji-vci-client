@@ -1,15 +1,15 @@
 plugins {
     id("com.android.library")
-    id("org.jetbrains.kotlin.android") version "1.9.23"
+    alias(libs.plugins.kotlinAndroid)
     id("maven-publish")
     id("signing")
-    id("org.jetbrains.dokka") version "1.9.20"
+    alias(libs.plugins.dokka)
     jacoco
-    id("org.sonarqube") version "5.1.0.4872"
+    alias(libs.plugins.sonarqube)
 }
 
 jacoco {
-    toolVersion = "0.8.12"
+    toolVersion = libs.versions.jacoco.get()
     reportsDirectory = layout.buildDirectory.dir("reports/jacoco")
 }
 
@@ -48,21 +48,21 @@ android {
 }
 
 dependencies {
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
-    implementation("io.fusionauth:fusionauth-jwt:5.3.2")
-    implementation("com.google.code.gson:gson:2.10.1")
-    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
-    implementation("org.bouncycastle:bcprov-jdk18on:1.78")
-    implementation("com.google.crypto.tink:tink:1.7.0")
+    implementation(libs.okHttp)
+    implementation(libs.nimbusJoseJwt)
+    implementation(libs.fusionauthJwt)
+    implementation(libs.gson)
+    implementation(libs.coroutinesCore)
+    implementation(libs.bouncyCastle)
+    implementation(libs.tink)
+    implementation(libs.okio)
+    implementation(libs.injiOpenid4vp)
 
-    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
-    testImplementation("io.mockk:mockk:1.13.10")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.10.2")
-    testImplementation("org.json:json:20231013")
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3")
-    implementation("com.squareup.okio:okio:3.6.0")
-    implementation("io.inji:inji-openid4vp-aar:1.0.0-beta-SNAPSHOT")
+    testImplementation(libs.mockWebServer)
+    testImplementation(libs.mockk)
+    testImplementation(libs.junitJupiterApi)
+    testImplementation(libs.orgJson)
+    testImplementation(libs.coroutinesTest)
     testImplementation(kotlin("test"))
 }
 
@@ -106,6 +106,8 @@ tasks {
     }
 }
 tasks.register("generatePom") {
+     group = "publishing"
+    description = "Generates the POM file for the AAR publication"
     dependsOn("generatePomFileForAarPublication")
 }
 
@@ -122,6 +124,8 @@ sonarqube {
         property( "sonar.exclusions", "**/build/**, **/*.kt.generated, **/R.java, **/BuildConfig.java")
         property( "sonar.scm.disabled", "true")
         property( "sonar.coverage.jacoco.xmlReportPaths", "build/reports/jacoco/jacocoTestReport/jacocoTestReport.xml")
+        property("sonar.projectName", "INJI VCI Client")
+        property("sonar.projectKey", "inji-vci-client")
     }
 }
 

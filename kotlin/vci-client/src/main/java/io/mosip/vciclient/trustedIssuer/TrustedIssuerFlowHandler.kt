@@ -16,34 +16,44 @@ import io.mosip.vciclient.issuerMetadata.IssuerMetadataResult
 import io.mosip.vciclient.issuerMetadata.IssuerMetadataService
 import io.mosip.vciclient.proof.toProofBindingContext
 
+data class TrustedIssuerCredentialRequest(
+    val credentialIssuer: String,
+    val credentialConfigurationId: String,
+    val clientMetadata: ClientMetadata,
+    val getTokenResponse: TokenResponseCallback,
+    val authorizationMethods: List<AuthorizationMethod>,
+    val downloadTimeoutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
+    val dpopManager: DPoPManager = DPoPManager(),
+)
+
+
 class TrustedIssuerFlowHandler internal constructor(
     private val authService: AuthorizationCodeFlowService = AuthorizationCodeFlowService(),
     private val issuerMetadataService: IssuerMetadataService = IssuerMetadataService(),
 ) {
     suspend fun downloadCredentials(
-        credentialIssuer: String,
-        credentialConfigurationId: String,
-        clientMetadata: ClientMetadata,
-        getTokenResponse: TokenResponseCallback,
+        request: TrustedIssuerCredentialRequest,
         getProofs: ProofsCallback,
-        authorizationMethods: List<AuthorizationMethod>,
-        downloadTimeoutInMillis: Long = Constants.DEFAULT_NETWORK_TIMEOUT_IN_MILLIS,
-        dpopManager: DPoPManager = DPoPManager(),
     ): CredentialResponse {
-        val issuerMetadata = loadIssuerMetadata(credentialIssuer, credentialConfigurationId)
-        val proofBindingContext = issuerMetadata.toProofBindingContext(credentialConfigurationId)
+        val issuerMetadata = loadIssuerMetadata(
+            credentialIssuer = request.credentialIssuer,
+            credentialConfigurationId = request.credentialConfigurationId,
+        )
+         val proofBindingContext = issuerMetadata.toProofBindingContext(
+            request.credentialConfigurationId,
+        )
 
         return when (issuerMetadata.issuerMetadata.specVersion) {
             OID4VCIVersion.V1 -> authService.requestCredentials(
                 issuerMetadata = issuerMetadata.issuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                credentialConfigurationId = request.credentialConfigurationId,
+                clientMetadata = request.clientMetadata,
+                getTokenResponse = request.getTokenResponse,
                 getProofs = getProofs,
-                authorizationMethods = authorizationMethods,
-                downloadTimeOutInMillis = downloadTimeoutInMillis,
+                authorizationMethods = request.authorizationMethods,
+                downloadTimeOutInMillis = request.downloadTimeoutInMillis,
                 proofBindingContext = proofBindingContext,
-                dpopManager = dpopManager
+                dpopManager = request.dpopManager
             )
 
             OID4VCIVersion.DRAFT13 -> {
@@ -54,14 +64,14 @@ class TrustedIssuerFlowHandler internal constructor(
                 }
                 val draft13Response = authService.requestCredentialsDraft13(
                     issuerMetadata = issuerMetadata.issuerMetadata,
-                    credentialConfigurationId = credentialConfigurationId,
-                    clientMetadata = clientMetadata,
-                    getTokenResponse = getTokenResponse,
+                    credentialConfigurationId = request.credentialConfigurationId,
+                    clientMetadata = request.clientMetadata,
+                    getTokenResponse = request.getTokenResponse,
                     getProofJwt = proofJwtCallback,
-                    authorizationMethods = authorizationMethods,
-                    downloadTimeOutInMillis = downloadTimeoutInMillis,
+                    authorizationMethods = request.authorizationMethods,
+                    downloadTimeOutInMillis = request.downloadTimeoutInMillis,
                     proofBindingContext = proofBindingContext,
-                    dpopManager = dpopManager
+                    dpopManager = request.dpopManager
                 )
                 CredentialResponse(
                     credentials = listOf(CredentialItem(draft13Response.credential)),

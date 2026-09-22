@@ -8,13 +8,16 @@ import io.mosip.vciclient.exception.IssuerMetadataFetchException
 import io.mosip.vciclient.exception.VCIClientException
 import io.mosip.vciclient.networkManager.HttpMethod
 import io.mosip.vciclient.networkManager.NetworkManager
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 private const val CREDENTIAL_ISSUER_WELL_KNOWN_URI_SUFFIX = "/.well-known/openid-credential-issuer"
 
 @Suppress("UNCHECKED_CAST")
-class IssuerMetadataService {
+class IssuerMetadataService (
+      private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
+) {
     private val timeoutMillis: Long = 10000
     private val cachedRawMetadata: MutableMap<String, Map<String, Any>> = mutableMapOf()
 
@@ -25,7 +28,7 @@ class IssuerMetadataService {
     suspend fun fetchIssuerMetadataResult(
         credentialIssuer: String,
         credentialConfigurationId: String
-    ): IssuerMetadataResult = withContext(Dispatchers.IO) {
+    ): IssuerMetadataResult = withContext(ioDispatcher) {
         try {
             val rawIssuerMetadata = getOrFetchCachedMetadata(credentialIssuer)
 
@@ -89,7 +92,7 @@ class IssuerMetadataService {
     }
 
     suspend fun fetchAndParseIssuerMetadata(credentialIssuer: String): Map<String, Any> =
-        withContext(Dispatchers.IO) {
+        withContext(ioDispatcher) {
             val wellKnownUrl: String
             val draft13WellKnownUrl: String
             try {

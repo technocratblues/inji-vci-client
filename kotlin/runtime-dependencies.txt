@@ -1,0 +1,230 @@
+
+> Task :vci-client:dependencies
+
+------------------------------------------------------------
+Project ':vci-client'
+------------------------------------------------------------
+
+debugRuntimeClasspath - Runtime classpath of /debug.
++--- com.squareup.okhttp3:okhttp:4.12.0
+|    +--- com.squareup.okio:okio:3.6.0
+|    |    \--- com.squareup.okio:okio-jvm:3.6.0
+|    |         +--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.10
+|    |         |    +--- org.jetbrains.kotlin:kotlin-stdlib:1.9.10 -> 2.1.21
+|    |         |    |    +--- org.jetbrains:annotations:13.0 -> 23.0.0
+|    |         |    |    +--- org.jetbrains.kotlin:kotlin-stdlib-common:2.1.21 (c)
+|    |         |    |    +--- org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.8.0 -> 1.9.10 (c)
+|    |         |    |    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.0 -> 1.9.10 (c)
+|    |         |    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk7:1.9.10
+|    |         |         \--- org.jetbrains.kotlin:kotlin-stdlib:1.9.10 -> 2.1.21 (*)
+|    |         \--- org.jetbrains.kotlin:kotlin-stdlib-common:1.9.10 -> 2.1.21
+|    |              \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 (*)
+|    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.21 -> 1.9.10 (*)
++--- com.nimbusds:nimbus-jose-jwt:9.37.3 -> 10.9
++--- io.fusionauth:fusionauth-jwt:5.3.2
+|    +--- com.fasterxml.jackson.core:jackson-core:2.15.2 -> 2.21.2
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.21.2
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.21 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.21.2 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-databind:2.21.2 (c)
+|    |         \--- com.fasterxml.jackson.module:jackson-module-kotlin:2.21.2 (c)
+|    +--- com.fasterxml.jackson.core:jackson-databind:2.15.2 -> 2.21.2
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.21
+|    |    +--- com.fasterxml.jackson.core:jackson-core:2.21.2 (*)
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.21.2 (*)
+|    \--- com.fasterxml.jackson.core:jackson-annotations:2.15.2 -> 2.21
++--- com.google.code.gson:gson:2.10.1
++--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3
+|    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3
+|         +--- org.jetbrains:annotations:23.0.0
+|         +--- org.jetbrains.kotlinx:kotlinx-coroutines-bom:1.7.3
+|         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm:1.7.3 (c)
+|         |    \--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3 (c)
+|         +--- org.jetbrains.kotlin:kotlin-stdlib-common:1.8.20 -> 2.1.21 (*)
+|         \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20 -> 1.9.10 (*)
++--- org.bouncycastle:bcprov-jdk18on:1.78 -> org.bouncycastle:bcprov-jdk15to18:1.78
++--- com.google.crypto.tink:tink:1.7.0 -> 1.11.0
+|    +--- com.google.code.findbugs:jsr305:3.0.2
+|    +--- com.google.code.gson:gson:2.10.1
+|    +--- com.google.errorprone:error_prone_annotations:2.18.0
+|    \--- com.google.protobuf:protobuf-java:3.19.6
++--- com.squareup.okio:okio:3.6.0 (*)
++--- io.inji:inji-openid4vp-aar:1.0.0-beta-SNAPSHOT
+|    +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1
+|    |    \--- org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.1
+|    |         +--- org.jetbrains.kotlin:kotlin-stdlib:2.0.0 -> 2.1.21 (*)
+|    |         +--- org.jetbrains.kotlinx:kotlinx-serialization-bom:1.7.1
+|    |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1 (c)
+|    |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:1.7.1 (c)
+|    |         |    +--- org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1 (c)
+|    |         |    \--- org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.1 (c)
+|    |         +--- org.jetbrains.kotlin:kotlin-stdlib-common:2.0.0 -> 2.1.21 (*)
+|    |         \--- org.jetbrains.kotlinx:kotlinx-serialization-core:1.7.1
+|    |              \--- org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:1.7.1
+|    |                   +--- org.jetbrains.kotlin:kotlin-stdlib:2.0.0 -> 2.1.21 (*)
+|    |                   +--- org.jetbrains.kotlinx:kotlinx-serialization-bom:1.7.1 (*)
+|    |                   \--- org.jetbrains.kotlin:kotlin-stdlib-common:2.0.0 -> 2.1.21 (*)
+|    +--- com.squareup.okhttp3:okhttp:4.12.0 (*)
+|    +--- commons-codec:commons-codec:1.16.0
+|    +--- com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0 -> 2.21.2
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.21.2 (*)
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.21
+|    |    +--- org.jetbrains.kotlin:kotlin-reflect:2.1.21
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:2.1.21 (*)
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.21.2 (*)
+|    +--- com.fasterxml.jackson.core:jackson-databind:2.14.0 -> 2.21.2 (*)
+|    +--- com.fasterxml.jackson.core:jackson-core:2.14.0 -> 2.21.2 (*)
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.14.0 -> 2.21
+|    +--- com.nimbusds:nimbus-jose-jwt:9.40 -> 10.9
+|    +--- org.bouncycastle:bcprov-jdk15to18:1.70 -> 1.78
+|    +--- com.android.identity:identity-credential:20231002
+|    |    +--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.8.20 -> 1.9.10 (*)
+|    |    +--- androidx.annotation:annotation:1.5.0
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:1.7.10 -> 2.1.21 (*)
+|    |    +--- co.nstant.in:cbor:0.9
+|    |    +--- org.bouncycastle:bcprov-jdk15on:1.69 -> org.bouncycastle:bcprov-jdk15to18:1.78
+|    |    +--- org.bouncycastle:bcpkix-jdk15on:1.69 -> 1.70
+|    |    |    +--- org.bouncycastle:bcprov-jdk15on:1.70 -> org.bouncycastle:bcprov-jdk15to18:1.78
+|    |    |    \--- org.bouncycastle:bcutil-jdk15on:1.70
+|    |    |         \--- org.bouncycastle:bcprov-jdk15on:1.70 -> org.bouncycastle:bcprov-jdk15to18:1.78
+|    |    \--- org.jetbrains.dokka:versioning-plugin:1.9.0
+|    |         +--- org.jetbrains.dokka:dokka-base:1.9.0
+|    |         |    +--- org.jetbrains.dokka:analysis-markdown:1.9.0
+|    |         |    |    +--- org.jsoup:jsoup:1.15.3
+|    |         |    |    +--- org.jetbrains:markdown:0.3.1
+|    |         |    |    |    \--- org.jetbrains:markdown-jvm:0.3.1
+|    |         |    |    |         +--- org.jetbrains.kotlin:kotlin-stdlib:1.5.31 -> 2.1.21 (*)
+|    |         |    |    |         \--- org.jetbrains.kotlin:kotlin-stdlib-common:1.5.31 -> 2.1.21 (*)
+|    |         |    |    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0 -> 1.9.10 (*)
+|    |         |    +--- org.jetbrains.kotlin:kotlin-reflect:1.9.0 -> 2.1.21 (*)
+|    |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3 -> 1.7.3 (*)
+|    |         |    +--- org.jsoup:jsoup:1.15.3
+|    |         |    +--- org.freemarker:freemarker:2.3.31
+|    |         |    +--- org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.5
+|    |         |    |    +--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10 -> 1.9.10 (*)
+|    |         |    |    \--- org.jetbrains.kotlin:kotlin-stdlib-common:1.6.10 -> 2.1.21 (*)
+|    |         |    +--- com.fasterxml.jackson.module:jackson-module-kotlin:2.12.7 -> 2.21.2 (*)
+|    |         |    +--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0 -> 1.9.10 (*)
+|    |         |    \--- com.fasterxml.jackson.core:jackson-databind:2.12.7.1 -> 2.21.2 (c)
+|    |         +--- org.jetbrains.dokka:templating-plugin:1.9.0
+|    |         |    +--- org.jetbrains.dokka:dokka-base:1.9.0 (*)
+|    |         |    +--- org.jetbrains.kotlin:kotlin-reflect:1.9.0 -> 2.1.21 (*)
+|    |         |    +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3 -> 1.7.3 (*)
+|    |         |    +--- org.jsoup:jsoup:1.15.3
+|    |         |    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0 -> 1.9.10 (*)
+|    |         +--- org.jetbrains.kotlin:kotlin-reflect:1.9.0 -> 2.1.21 (*)
+|    |         +--- org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3 -> 1.7.3 (*)
+|    |         +--- org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.5 (*)
+|    |         +--- org.apache.maven:maven-artifact:3.8.5
+|    |         |    +--- org.codehaus.plexus:plexus-utils:3.3.0
+|    |         |    \--- org.apache.commons:commons-lang3:3.8.1
+|    |         +--- com.fasterxml.jackson.module:jackson-module-kotlin:2.12.7 -> 2.21.2 (*)
+|    |         +--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0 -> 1.9.10 (*)
+|    |         \--- com.fasterxml.jackson.core:jackson-databind:2.12.7.1 -> 2.21.2 (c)
+|    +--- info.weboftrust:ld-signatures-java:1.5.0
+|    |    +--- decentralized-identity:jsonld-common-java:1.5.0 -> 1.19.0
+|    |    |    +--- com.apicatalog:titanium-json-ld:1.7.0
+|    |    |    |    +--- com.apicatalog:titanium-jcs:1.1.1
+|    |    |    |    +--- com.apicatalog:titanium-rdf-api:1.0.0
+|    |    |    |    \--- com.apicatalog:titanium-rdf-n-quads:1.0.2
+|    |    |    |         \--- com.apicatalog:titanium-rdf-api:1.0.0
+|    |    |    +--- com.apicatalog:titanium-rdfc:2.0.0
+|    |    |    |    +--- com.apicatalog:titanium-rdf-api:1.0.0
+|    |    |    |    \--- com.apicatalog:titanium-rdf-n-quads:1.0.0 -> 1.0.2 (*)
+|    |    |    +--- org.glassfish:jakarta.json:2.0.1
+|    |    |    \--- com.fasterxml.jackson.core:jackson-databind:2.21.2 (*)
+|    |    +--- com.danubetech:key-formats-java:1.9.0
+|    |    |    +--- commons-codec:commons-codec:1.15 -> 1.16.0
+|    |    |    +--- com.fasterxml.jackson.core:jackson-databind:2.15.0 -> 2.21.2 (*)
+|    |    |    +--- org.bouncycastle:bcprov-jdk18on:1.74 -> org.bouncycastle:bcprov-jdk15to18:1.78
+|    |    |    +--- com.goterl:lazysodium-java:5.1.4
+|    |    |    |    +--- net.java.dev.jna:jna:5.12.1
+|    |    |    |    +--- com.goterl:resource-loader:2.0.2
+|    |    |    |    |    +--- org.slf4j:slf4j-api:2.0.0-alpha1 -> 2.0.3
+|    |    |    |    |    \--- net.java.dev.jna:jna:5.9.0 -> 5.12.1
+|    |    |    |    \--- org.slf4j:slf4j-api:2.0.3
+|    |    |    +--- org.bitcoinj:bitcoinj-core:0.16.2
+|    |    |    |    +--- com.google.guava:guava:31.0.1-android
+|    |    |    |    |    +--- com.google.guava:failureaccess:1.0.1
+|    |    |    |    |    +--- com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava
+|    |    |    |    |    +--- com.google.code.findbugs:jsr305:3.0.2
+|    |    |    |    |    +--- org.checkerframework:checker-qual:3.12.0
+|    |    |    |    |    +--- org.checkerframework:checker-compat-qual:2.5.5
+|    |    |    |    |    +--- com.google.errorprone:error_prone_annotations:2.7.1 -> 2.18.0
+|    |    |    |    |    \--- com.google.j2objc:j2objc-annotations:1.3
+|    |    |    |    +--- com.google.protobuf:protobuf-javalite:3.18.0
+|    |    |    |    +--- com.squareup.okhttp3:okhttp:3.14.9 -> 4.12.0 (*)
+|    |    |    |    +--- org.slf4j:slf4j-api:1.7.32 -> 2.0.3
+|    |    |    |    \--- net.jcip:jcip-annotations:1.0
+|    |    |    \--- org.web3j:crypto:5.0.0
+|    |    |         +--- org.web3j:abi:5.0.0
+|    |    |         |    \--- org.web3j:utils:5.0.0
+|    |    |         +--- org.web3j:rlp:5.0.0
+|    |    |         |    \--- org.web3j:utils:5.0.0
+|    |    |         +--- org.web3j:utils:5.0.0
+|    |    |         +--- org.slf4j:slf4j-api:1.7.25 -> 2.0.3
+|    |    |         \--- com.fasterxml.jackson.core:jackson-databind:2.8.11.6 -> 2.21.2 (*)
+|    |    +--- io.github.erdtman:java-json-canonicalization:1.1
+|    |    +--- com.nimbusds:nimbus-jose-jwt:9.31 -> 10.9
+|    |    \--- com.github.multiformats:java-multibase:v1.1.1 -> 1.3.0
+|    +--- com.danubetech:data-integrity-java:1.24.0
+|    |    +--- decentralized-identity:jsonld-common-java:1.19.0 (*)
+|    |    +--- io.setl:rdf-urdna:1.4
+|    |    +--- io.github.erdtman:java-json-canonicalization:1.1
+|    |    +--- com.nimbusds:nimbus-jose-jwt:10.9
+|    |    \--- com.github.multiformats:java-multibase:1.3.0
+|    +--- com.danubetech:key-formats-java:1.9.0 (*)
+|    +--- decentralized-identity:jsonld-common-java:1.8.0 -> 1.19.0 (*)
+|    +--- io.inji:vcverifier-jar:1.8.1
+|    |    +--- org.json:json:20240303
+|    |    +--- info.weboftrust:ld-signatures-java:1.5.0 (*)
+|    |    +--- com.squareup.okhttp3:okhttp:4.1.0 -> 4.12.0 (*)
+|    |    +--- org.bouncycastle:bcprov-jdk15to18:1.70 -> 1.78
+|    |    +--- decentralized-identity:jsonld-common-java:1.8.0 -> 1.19.0 (*)
+|    |    +--- com.fasterxml.jackson.module:jackson-module-kotlin:2.14.0 -> 2.21.2 (*)
+|    |    +--- com.fasterxml.jackson.core:jackson-databind:2.14.0 -> 2.21.2 (*)
+|    |    +--- com.fasterxml.jackson.core:jackson-core:2.14.0 -> 2.21.2 (*)
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.14.0 -> 2.21
+|    |    +--- com.nimbusds:nimbus-jose-jwt:9.40 -> 10.9
+|    |    +--- org.springframework:spring-web:5.0.20.RELEASE
+|    |    |    +--- org.springframework:spring-beans:5.0.20.RELEASE
+|    |    |    |    \--- org.springframework:spring-core:5.0.20.RELEASE
+|    |    |    |         \--- org.springframework:spring-jcl:5.0.20.RELEASE
+|    |    |    \--- org.springframework:spring-core:5.0.20.RELEASE (*)
+|    |    +--- co.nstant.in:cbor:0.9
+|    |    +--- com.android.identity:identity-credential:20231002 (*)
+|    |    +--- androidx.annotation:annotation-jvm:1.9.1
+|    |    |    \--- org.jetbrains.kotlin:kotlin-stdlib:1.9.24 -> 2.1.21 (*)
+|    |    +--- com.authlete:sd-jwt:1.5
+|    |    |    \--- com.google.code.gson:gson:2.10.1
+|    |    +--- org.threeten:threetenbp:1.7.0
+|    |    +--- com.upokecenter:cbor:4.5.6
+|    |    |    +--- com.github.peteroupc:numbers:1.8.2
+|    |    |    \--- com.github.peteroupc:datautilities:1.1.0
+|    |    +--- com.authlete:cbor:1.19
+|    |    |    +--- com.google.code.gson:gson:2.10.1
+|    |    |    \--- org.bouncycastle:bcpkix-jdk18on:1.77
+|    |    |         +--- org.bouncycastle:bcprov-jdk18on:1.77 -> org.bouncycastle:bcprov-jdk15to18:1.78
+|    |    |         \--- org.bouncycastle:bcutil-jdk18on:1.77
+|    |    |              \--- org.bouncycastle:bcprov-jdk18on:1.77 -> org.bouncycastle:bcprov-jdk15to18:1.78
+|    |    \--- org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.0 -> 1.9.10 (*)
+|    +--- org.bouncycastle:bcpkix-jdk15on:1.70 (*)
+|    +--- com.google.crypto.tink:tink:1.11.0 (*)
+|    \--- com.augustcellars.cose:cose-java:1.1.0
+|         +--- com.upokecenter:cbor:4.0.1 -> 4.5.6 (*)
+|         \--- net.i2p.crypto:eddsa:0.3.0
+\--- org.jetbrains.kotlin:kotlin-stdlib:1.9.23 -> 2.1.21 (*)
+
+(c) - A dependency constraint, not a dependency. The dependency affected by the constraint occurs elsewhere in the tree.
+(*) - Indicates repeated occurrences of a transitive dependency subtree. Gradle expands transitive dependency subtrees only once per project; repeat occurrences only display the root of the subtree, followed by this annotation.
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+Deprecated Gradle features were used in this build, making it incompatible with Gradle 9.0.
+
+You can use '--warning-mode all' to show the individual deprecation warnings and determine if they come from your own scripts or plugins.
+
+For more on this, please refer to https://docs.gradle.org/8.5/userguide/command_line_interface.html#sec:command_line_warnings in the Gradle documentation.
+
+BUILD SUCCESSFUL in 987ms
+1 actionable task: 1 executed

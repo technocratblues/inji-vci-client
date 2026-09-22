@@ -8,6 +8,8 @@ import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.present
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.request.AuthorizationDetail
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.request.IARInitialRequestBody
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.response.AuthorizationResponse
+import io.mosip.vciclient.common.DefaultDispatcherProvider
+import io.mosip.vciclient.common.DispatcherProvider
 import io.mosip.vciclient.common.JsonUtils
 import io.mosip.vciclient.constants.Constants.APPLICATION_X_WWW_FORM_URLENCODED
 import io.mosip.vciclient.constants.Constants.CONTENT_TYPE
@@ -16,12 +18,13 @@ import io.mosip.vciclient.exception.VCIClientException
 import io.mosip.vciclient.networkManager.HttpMethod
 import io.mosip.vciclient.networkManager.NetworkManager
 import io.mosip.vciclient.pkce.PKCESessionManager
-import kotlinx.coroutines.Dispatchers
+//import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.util.logging.Logger
 
 class InteractiveAuthorizationHandler {
+    private val dispatcherProvider: DispatcherProvider = DefaultDispatcherProvider
 
     private val logger = Logger.getLogger(javaClass.simpleName)
 
@@ -62,7 +65,7 @@ class InteractiveAuthorizationHandler {
                 dpopJkt
             )
 
-            val response = withContext(Dispatchers.IO) {
+            val response = withContext(dispatcherProvider.io) {
                 NetworkManager.sendRequest(
                     url = endpoint,
                     method = HttpMethod.POST,

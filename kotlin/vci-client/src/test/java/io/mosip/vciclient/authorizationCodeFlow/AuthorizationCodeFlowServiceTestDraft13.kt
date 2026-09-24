@@ -41,6 +41,11 @@ import org.junit.Test
 import org.junit.jupiter.api.assertThrows
 
 class AuthorizationCodeFlowServiceTest {
+    private val proofBindingContext = ProofBindingContext(
+        proofSigningAlgorithmsSupported = listOf("ES256"),
+        cryptographicBindingMethodsSupported = listOf("did:jwk"),
+        proofTypesSupported = listOf("jwt"),
+    )
     private val downloadTimeout: Long = 5000L
     private val mockCredentialResponse = mockk<CredentialResponseDraft13>()
     private val resolvedIssuerMetadata = mockk<IssuerMetadata>(relaxed = true) {
@@ -151,7 +156,7 @@ class AuthorizationCodeFlowServiceTest {
                 getProofJwt = getProofJwt,
                 credentialOffer = credentialOffer,
                 downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
 
@@ -175,7 +180,7 @@ class AuthorizationCodeFlowServiceTest {
                     getProofJwt = getProofJwt,
                     credentialOffer = credentialOffer,
                     downloadTimeOutInMillis = downloadTimeout,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                    proofBindingContext = proofBindingContext,
                     authorizationMethods = listOf(authorizationMethod),
                 )
             }
@@ -225,7 +230,7 @@ class AuthorizationCodeFlowServiceTest {
                     getProofJwt = getProofJwt,
                     credentialOffer = credentialOffer,
                     downloadTimeOutInMillis = downloadTimeout,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                    proofBindingContext = proofBindingContext,
                     authorizationMethods = listOf(authorizationMethod),
                 )
             assertEquals(mockCredentialResponse, result)
@@ -244,7 +249,7 @@ class AuthorizationCodeFlowServiceTest {
                 clientMetadata = clientMetadata,
                 getTokenResponse = getTokenResponse,
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -275,7 +280,7 @@ class AuthorizationCodeFlowServiceTest {
                 clientMetadata = clientMetadata,
                 getTokenResponse = getTokenResponse,
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -314,7 +319,7 @@ class AuthorizationCodeFlowServiceTest {
                 clientMetadata = clientMetadata,
                 getTokenResponse = getTokenResponse,
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = mockk(relaxed = true)
             )
         }
@@ -330,7 +335,7 @@ class AuthorizationCodeFlowServiceTest {
                 clientMetadata = clientMetadata,
                 getTokenResponse = getTokenResponse,
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = emptyList(),
             )
         }
@@ -353,7 +358,7 @@ class AuthorizationCodeFlowServiceTest {
                 clientMetadata = clientMetadata,
                 getTokenResponse = getTokenResponse,
                 getProofJwt = failingProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -378,7 +383,7 @@ class AuthorizationCodeFlowServiceTest {
                 clientMetadata = clientMetadata,
                 getTokenResponse = getTokenResponse,
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -405,7 +410,7 @@ class AuthorizationCodeFlowServiceTest {
                 getProofJwt = getProofJwt,
                 credentialOffer = credentialOffer,
                 downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -447,7 +452,7 @@ class AuthorizationCodeFlowServiceTest {
             clientMetadata = clientMetadata,
             getTokenResponse = getTokenResponse,
             getProofJwt = getProofJwt,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+            proofBindingContext = proofBindingContext,
             authorizationMethods = listOf(authorizationMethod),
         )
 
@@ -487,7 +492,7 @@ class AuthorizationCodeFlowServiceTest {
                 getProofJwt = getProofJwt,
                 credentialOffer = credentialOffer,
                 downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -530,7 +535,7 @@ class AuthorizationCodeFlowServiceTest {
                 clientMetadata = clientMetadata,
                 getTokenResponse = getTokenResponse,
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -568,7 +573,7 @@ class AuthorizationCodeFlowServiceTest {
                 getProofJwt = getProofJwt,
                 credentialOffer = credentialOffer,
                 downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -598,7 +603,7 @@ class AuthorizationCodeFlowServiceTest {
                 getProofJwt = getProofJwt,
                 credentialOffer = credentialOffer,
                 downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -628,7 +633,7 @@ class AuthorizationCodeFlowServiceTest {
                 getProofJwt = getProofJwt,
                 credentialOffer = credentialOffer,
                 downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 authorizationMethods = listOf(authorizationMethod),
             )
         }
@@ -677,7 +682,7 @@ fun `should throw when interactive authorization is required but endpoint is mis
             clientMetadata = clientMetadata,
             getTokenResponse = getTokenResponse,
             getProofJwt = getProofJwt,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+            proofBindingContext = proofBindingContext,
             authorizationMethods = listOf(authorizationMethod)
         )
     }
@@ -714,7 +719,7 @@ fun `should throw when interactive authorization is required but endpoint is mis
             clientMetadata = clientMetadata,
             getTokenResponse = getTokenResponse,
             getProofJwt = getProofJwt,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+            proofBindingContext = proofBindingContext,
             authorizationMethods = listOf(authorizationMethod),
             dpopManager = dpopManager
         )

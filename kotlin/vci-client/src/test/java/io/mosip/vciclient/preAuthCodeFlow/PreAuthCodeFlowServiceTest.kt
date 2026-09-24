@@ -7,6 +7,7 @@ import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import io.mockk.verify
 import io.mosip.vciclient.authorizationServer.AuthorizationServerResolver
 import io.mosip.vciclient.common.Util
 import io.mosip.vciclient.credential.request.CredentialRequestExecutor
@@ -31,6 +32,11 @@ import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertTrue
 
 class PreAuthCodeFlowServiceTest {
+    private val proofBindingContext = ProofBindingContext(
+        proofSigningAlgorithmsSupported = listOf("ES256"),
+        cryptographicBindingMethodsSupported = listOf("did:jwk"),
+        proofTypesSupported = listOf("jwt"),
+    )
 
     private val mockCredentialResponse = mockk<CredentialResponseDraft13>()
     private val resolvedIssuerMetaData = mockk<IssuerMetadata>()
@@ -113,7 +119,7 @@ class PreAuthCodeFlowServiceTest {
 
         val result = PreAuthCodeFlowService().requestCredentialsDraft13(
             issuerMetadata = resolvedIssuerMetaData,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+            proofBindingContext = proofBindingContext,
             getTokenResponse = mockk(relaxed = true),
             getProofJwt = getProofJwt,
             credentialConfigurationId = credentialConfigurationId,
@@ -125,6 +131,48 @@ class PreAuthCodeFlowServiceTest {
         assertEquals(mockCredentialResponse, result)
     }
 
+    @Test
+    fun `should request credential without proof when holder binding is not required`() = runBlocking {
+        coEvery {
+            anyConstructed<TokenService>().getAccessToken(
+                getTokenResponse = any(),
+                tokenEndpoint = any(),
+                preAuthCode = any(),
+                txCode = any(),
+                dpopManager = any()
+            )
+        } returns TokenResponse(accessToken = "mock-access-token", tokenType = "Bearer")
+
+        val offer = CredentialOffer(
+            credentialIssuer = "https://mock.issuer",
+            credentialConfigurationIds = listOf(credentialConfigurationId),
+            grants = CredentialOfferGrants(
+                preAuthorizedGrant = PreAuthCodeGrant(preAuthCode = "abc123")
+            )
+        )
+
+        val result = PreAuthCodeFlowService().requestCredentialsDraft13(
+            issuerMetadata = resolvedIssuerMetaData,
+            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+            getTokenResponse = mockk(relaxed = true),
+            getProofJwt = { error("proof JWT callback should not be invoked") },
+            credentialConfigurationId = credentialConfigurationId,
+            offer = offer
+        )
+
+        assertEquals(mockCredentialResponse, result)
+        verify {
+            anyConstructed<CredentialRequestExecutor>().requestCredentialDraft13(
+                issuerMetadata = any(),
+                credentialConfigurationId = any(),
+                proof = isNull(),
+                accessToken = "mock-access-token",
+                downloadTimeoutInMillis = any(),
+                tokenType = any(),
+                dpopManager = any()
+            )
+        }
+    }
 
     @Test
     fun `should throw DownloadFailedException if tx_code is required but provider is null`() =
@@ -143,7 +191,7 @@ class PreAuthCodeFlowServiceTest {
             val exception = assertThrows<DownloadFailedException> {
                 PreAuthCodeFlowService().requestCredentialsDraft13(
                     issuerMetadata = resolvedIssuerMetaData,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                    proofBindingContext = proofBindingContext,
                     getTokenResponse = mockk(relaxed = true),
                     getProofJwt = getProofJwt,
                     credentialConfigurationId = credentialConfigurationId,
@@ -175,7 +223,7 @@ class PreAuthCodeFlowServiceTest {
         val exception = assertThrows<DownloadFailedException> {
             PreAuthCodeFlowService().requestCredentialsDraft13(
                 issuerMetadata = resolvedIssuerMetaData,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 getTokenResponse =  mockk(relaxed = true),
                 getProofJwt = getProofJwt,
                 credentialConfigurationId = credentialConfigurationId,
@@ -201,7 +249,7 @@ class PreAuthCodeFlowServiceTest {
             runBlocking {
                 PreAuthCodeFlowService().requestCredentialsDraft13(
                     issuerMetadata = resolvedIssuerMetaData,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                    proofBindingContext = proofBindingContext,
                     getTokenResponse = mockk(relaxed = true),
                     getProofJwt = getProofJwt,
                     credentialConfigurationId = credentialConfigurationId,
@@ -244,7 +292,7 @@ class PreAuthCodeFlowServiceTest {
         val ex = assertThrows<DownloadFailedException> {
             PreAuthCodeFlowService().requestCredentialsDraft13(
                 issuerMetadata = resolvedIssuerMetaData,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                proofBindingContext = proofBindingContext,
                 getTokenResponse = mockk(relaxed = true),
                 getProofJwt = getProofJwt,
                 credentialConfigurationId = credentialConfigurationId,

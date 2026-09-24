@@ -62,20 +62,24 @@ internal class AuthorizationCodeFlowService(
             traceabilityId = traceabilityId,
             dpopManager = dpopManager,
         ) { token ->
-            val nonce = resolveNonce(
-                issuerMetadata = issuerMetadata,
-                timeoutInMillis = downloadTimeOutInMillis,
-                dpopManager = dpopManager
-            )
-            val proofs = try {
-                getProofs(
-                    proofBindingContext.toCredentialRequestProofMetadata(issuerMetadata.credentialIssuer, nonce)
+            val proofs = if (proofBindingContext.requiresProof) {
+                val nonce = resolveNonce(
+                    issuerMetadata = issuerMetadata,
+                    timeoutInMillis = downloadTimeOutInMillis,
+                    dpopManager = dpopManager
                 )
-            } catch (e: Exception) {
-                throw DownloadFailedException(
-                    "Failed to obtain proofs from callback: ${e.message}",
-                    cause = e
-                )
+                try {
+                    getProofs(
+                        proofBindingContext.toCredentialRequestProofMetadata(issuerMetadata.credentialIssuer, nonce)
+                    )
+                } catch (e: Exception) {
+                    throw DownloadFailedException(
+                        "Failed to obtain proofs from callback: ${e.message}",
+                        cause = e
+                    )
+                }
+            } else {
+                null
             }
 
             credentialExecutor.requestCredential(
@@ -114,22 +118,27 @@ internal class AuthorizationCodeFlowService(
             traceabilityId = traceabilityId,
             dpopManager = dpopManager,
         ) { token ->
-            val nonce = NonceService.extractNonceFromTokenResponse(token)
-            val jwt = try {
-                getProofJwt(
-                    proofBindingContext.toCredentialRequestProofMetadata(issuerMetadata.credentialIssuer, nonce)
-                )
-            } catch (e: Exception) {
-                throw DownloadFailedException(
-                    "Failed to obtain proof JWT from callback: ${e.message}",
-                    cause = e
-                )
+            val proof = if (proofBindingContext.requiresProof) {
+                val nonce = NonceService.extractNonceFromTokenResponse(token)
+                val jwt = try {
+                    getProofJwt(
+                        proofBindingContext.toCredentialRequestProofMetadata(issuerMetadata.credentialIssuer, nonce)
+                    )
+                } catch (e: Exception) {
+                    throw DownloadFailedException(
+                        "Failed to obtain proof JWT from callback: ${e.message}",
+                        cause = e
+                    )
+                }
+                JWTProof(jwt)
+            } else {
+                null
             }
 
             credentialExecutor.requestCredentialDraft13(
                 issuerMetadata = issuerMetadata,
                 credentialConfigurationId = credentialConfigurationId,
-                proof = JWTProof(jwt),
+                proof = proof,
                 accessToken = token.accessToken,
                 downloadTimeoutInMillis = downloadTimeOutInMillis,
                 tokenType = token.tokenType,

@@ -27,6 +27,11 @@ import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class AuthorizationCodeFlowServiceV1Test {
+    private val proofBindingContext = ProofBindingContext(
+        proofSigningAlgorithmsSupported = listOf("ES256"),
+        cryptographicBindingMethodsSupported = listOf("did:jwk"),
+        proofTypesSupported = listOf("jwt"),
+    )
     private val resolver = mockk<AuthorizationServerResolver>()
     private val tokenService = mockk<TokenService>()
     private val executor = mockk<CredentialRequestExecutor>()
@@ -110,7 +115,7 @@ class AuthorizationCodeFlowServiceV1Test {
                 },
                 authorizationMethods = authorizationMethods,
                 downloadTimeOutInMillis = 15_000,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"))
+                proofBindingContext = proofBindingContext
             )
 
             assertEquals(expectedResponse, response)
@@ -144,12 +149,55 @@ class AuthorizationCodeFlowServiceV1Test {
                     getTokenResponse = { error("unused") },
                     getProofs = { _ -> throw IllegalStateException("proof generation failed") },
                     authorizationMethods = authorizationMethods,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"))
+                    proofBindingContext = proofBindingContext
                 )
             }
         }
 
         assertTrue(exception.message.contains("Failed to obtain proofs from callback"))
         assertEquals("proof generation failed", exception.cause?.message)
+    }
+
+    @Test
+    fun `requestCredentials should skip nonce and proofs when holder binding is not required`() {
+        runBlocking {
+            val expectedResponse = CredentialResponse(
+                credentials = listOf(CredentialItem(JsonPrimitive("credential-1")))
+            )
+
+            every { pkceSessionManager.createSession() } returns pkceSession
+            coEvery { resolver.resolveForAuthCode(issuerMetadata, null) } returns AuthorizationServerMetadata(
+                issuer = "https://auth.example.com",
+                tokenEndpoint = "https://auth.example.com/token",
+                authorizationEndpoint = "https://auth.example.com/authorize"
+            )
+            coEvery {
+                tokenService.getAccessToken(any(), any(), any(), any(), any(), any(), any())
+            } returns TokenResponse("access-token", "Bearer")
+            every {
+                executor.requestCredential(
+                    issuerMetadata = issuerMetadata,
+                    credentialConfigurationId = "UniversityDegreeCredential",
+                    proofs = null,
+                    accessToken = "access-token",
+                    downloadTimeoutInMillis = any(),
+                    tokenType = any(),
+                    dpopManager = any()
+                )
+            } returns expectedResponse
+
+            val response = service.requestCredentials(
+                issuerMetadata = issuerMetadata,
+                credentialConfigurationId = "UniversityDegreeCredential",
+                clientMetadata = clientMetadata,
+                getTokenResponse = { error("unused") },
+                getProofs = { error("proofs callback should not be invoked") },
+                authorizationMethods = authorizationMethods,
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"))
+            )
+
+            assertEquals(expectedResponse, response)
+            coVerify(exactly = 0) { nonceService.fetchNonce(any(), any(), any()) }
+        }
     }
 }

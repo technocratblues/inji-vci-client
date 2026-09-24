@@ -8,7 +8,7 @@ import okhttp3.Request
 interface CredentialRequest {
     val accessToken: String
     val issuerMetadata: IssuerMetadata
-    val proof: Proof
+    val proof: Proof?
 
     fun constructRequest(): Request
     fun validateIssuerMetaData(): ValidatorResult

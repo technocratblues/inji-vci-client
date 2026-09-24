@@ -123,4 +123,29 @@ class CredentialRequestFactoryV2Test {
         assertEquals(listOf("proof-1", "proof-2"), proofs["ldp_vp"])
         assertFalse(proofs.containsKey("jwt"))
     }
+
+    @Test
+    fun `should omit proofs from request body when proofs are null`() {
+        val factory = CredentialRequestFactory()
+        val issuer = IssuerMetadata(
+            credentialIssuer = "https://issuer.example.com",
+            credentialEndpoint = "https://issuer.example.com/credential",
+            credentialFormat = CredentialFormat.LDP_VC
+        )
+
+        val request = factory.createCredentialRequest(
+            accessToken = "token",
+            issuer = issuer,
+            credentialConfigurationId = "UniversityDegreeCredential",
+            proofs = null
+        )
+
+        val buffer = Buffer()
+        request.body?.writeTo(buffer)
+        val json = JsonUtils.toMap(buffer.readUtf8())
+
+        assertEquals("UniversityDegreeCredential", json["credential_configuration_id"])
+        assertFalse(json.containsKey("proofs"))
+        assertFalse(json.containsKey("proof"))
+    }
 }

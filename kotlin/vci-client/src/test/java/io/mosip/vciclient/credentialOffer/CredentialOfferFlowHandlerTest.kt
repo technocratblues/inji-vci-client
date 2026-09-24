@@ -51,6 +51,7 @@ class CredentialOfferFlowHandlerV1Test {
             "display" to listOf(mapOf("name" to "Issuer")),
             "credential_configurations_supported" to mapOf(
                 "UniversityDegreeCredential" to mapOf(
+                    "cryptographic_binding_methods_supported" to listOf("did:jwk"),
                     "proof_types_supported" to mapOf(
                         "jwt" to mapOf(
                             "proof_signing_alg_values_supported" to listOf("ES256")
@@ -79,7 +80,7 @@ class CredentialOfferFlowHandlerV1Test {
         coEvery {
             preAuthFlowService.requestCredentials(
                 issuerMetadata = issuerMetadataResult.issuerMetadata,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), cryptographicBindingMethodsSupported = listOf("did:jwk"), proofTypesSupported = listOf("jwt")),
                 getTokenResponse = any(),
                 getProofs = any(),
                 credentialConfigurationId = "UniversityDegreeCredential",
@@ -129,7 +130,7 @@ class CredentialOfferFlowHandlerV1Test {
                 authorizationMethods = authorizationMethods,
                 credentialOffer = offer,
                 downloadTimeOutInMillis = 11_000,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), cryptographicBindingMethodsSupported = listOf("did:jwk"), proofTypesSupported = listOf("jwt")),
                 traceabilityId = "trace-1",
                 dpopManager = any()
             )

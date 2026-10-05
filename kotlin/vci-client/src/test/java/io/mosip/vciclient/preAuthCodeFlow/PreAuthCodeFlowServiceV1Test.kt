@@ -84,18 +84,22 @@ class PreAuthCodeFlowServiceV1Test {
         } returns expectedResponse
 
         val response = service.requestCredentials(
-            issuerMetadata = issuerMetadata,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-            getTokenResponse = { error("unused") },
+            context = CredentialRequestContext(
+                issuerMetadata = issuerMetadata,
+                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                credentialConfigurationId = "UniversityDegreeCredential",
+            ),
+            options = PreAuthFlowOptions(
+                getTokenResponse = { error("unused") },
+                offer = offer,
+                downloadTimeoutInMillis = 12_000,
+            ),
             getProofs = { proofRequest ->
                 assertEquals("https://issuer.example.com", proofRequest.credentialIssuer)
                 assertEquals("nonce-123", proofRequest.nonce)
                 assertEquals(listOf("ES256"), proofRequest.proofSigningAlgorithmsSupported)
                 CredentialRequestProofs(proofs = listOf("proof-1"))
             },
-            credentialConfigurationId = "UniversityDegreeCredential",
-            downloadTimeoutInMillis = 12_000,
-            offer = offer
         )
 
         assertEquals(expectedResponse, response)
@@ -113,12 +117,16 @@ class PreAuthCodeFlowServiceV1Test {
         val exception = assertThrows(DownloadFailedException::class.java) {
             runBlocking {
                 service.requestCredentials(
-                    issuerMetadata = issuerMetadata,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                    getTokenResponse = { error("unused") },
+                    context = CredentialRequestContext(
+                        issuerMetadata = issuerMetadata,
+                        proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+                        credentialConfigurationId = "UniversityDegreeCredential",
+                    ),
+                    options = PreAuthFlowOptions(
+                        getTokenResponse = { error("unused") },
+                        offer = offer,
+                    ),
                     getProofs = { _ -> throw IllegalArgumentException("proof generation failed") },
-                    credentialConfigurationId = "UniversityDegreeCredential",
-                    offer = offer
                 )
             }
         }

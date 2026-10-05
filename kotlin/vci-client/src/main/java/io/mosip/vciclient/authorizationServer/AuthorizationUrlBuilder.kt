@@ -31,16 +31,16 @@ object AuthorizationUrlBuilder {
       request: AuthorizationRequest
     ): String {
         return buildString {
-            append(baseUrl)
-            append("?client_id=").append(encode(clientId))
-            append("&redirect_uri=").append(encode(redirectUri))
-            append("&response_type=").append(encode(responseType.value))
-            append("&scope=").append(encode(scope))
-            append("&state=").append(encode(state))
-            append("&code_challenge=").append(encode(codeChallenge))
-            append("&code_challenge_method=").append(encode(codeChallengeMethod.value))
-            append("&nonce=").append(encode(nonce))
-            append("&dpop_jkt=").append(encode(dpopJkt))
+            append(request.baseUrl)
+            append("?client_id=").append(encode(request.client.clientId))
+            append("&redirect_uri=").append(encode(request.client.redirectUri))
+            append("&response_type=").append(encode(request.responseType.value))
+            append("&scope=").append(encode(request.client.scope))
+            append("&state=").append(encode(request.security.state))
+            append("&code_challenge=").append(encode(request.security.codeChallenge))
+            append("&code_challenge_method=").append(encode(request.security.codeChallengeMethod.value))
+            append("&nonce=").append(encode(request.security.nonce))
+            append("&dpop_jkt=").append(encode(request.security.dpopJkt))
         }
     }
 

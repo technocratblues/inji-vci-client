@@ -49,6 +49,33 @@ class PushedAuthorizationRequestServiceTest {
         } returns response
     }
 
+    private fun createRequest(
+        clientId: String = "client-id",
+        redirectUri: String = "app://callback",
+        codeChallenge: String = "challenge",
+        state: String = "state-123",
+        nonce: String = "nonce-123",
+        scope: String? = "openid",
+        dpopJkt: String? = null,
+        clientAuthParams: Map<String, String> = emptyMap(),
+    ) = PushedAuthorizationRequest(
+        parEndpoint = parEndpoint,
+        client = PushedAuthorizationClientDetails(
+            clientId = clientId,
+            redirectUri = redirectUri,
+            scope = scope,
+        ),
+        security = PushedAuthorizationSecurityDetails(
+            codeChallenge = codeChallenge,
+            state = state,
+            nonce = nonce,
+            dpopJkt = dpopJkt,
+        ),
+        options = PushedAuthorizationRequestOptions(
+            clientAuthParams = clientAuthParams,
+        ),
+    )
+
     @Test
     fun `should return request_uri and expires_in on success`() = runBlocking {
         val bodySlot = slot<Map<String, String>>()
@@ -56,13 +83,7 @@ class PushedAuthorizationRequestServiceTest {
         stubDeserialize(PushedAuthorizationResponse("urn:ietf:params:oauth:request_uri:abc", 90))
 
         val result = PushedAuthorizationRequestService().pushAuthorizationRequest(
-            parEndpoint = parEndpoint,
-            clientId = "client-id",
-            redirectUri = "app://callback",
-            codeChallenge = "challenge",
-            state = "state-123",
-            nonce = "nonce-123",
-            scope = "openid"
+            createRequest()
         )
 
         assertEquals("urn:ietf:params:oauth:request_uri:abc", result.requestUri)
@@ -76,13 +97,7 @@ class PushedAuthorizationRequestServiceTest {
         stubDeserialize(PushedAuthorizationResponse("urn:request_uri:abc"))
 
         PushedAuthorizationRequestService().pushAuthorizationRequest(
-            parEndpoint = parEndpoint,
-            clientId = "client-id",
-            redirectUri = "app://callback",
-            codeChallenge = "challenge",
-            state = "state-123",
-            nonce = "nonce-123",
-            scope = "openid"
+            createRequest()
         )
 
         val body = bodySlot.captured
@@ -102,13 +117,7 @@ class PushedAuthorizationRequestServiceTest {
         stubDeserialize(PushedAuthorizationResponse("urn:request_uri:abc"))
 
         PushedAuthorizationRequestService().pushAuthorizationRequest(
-            parEndpoint = parEndpoint,
-            clientId = "client-id",
-            redirectUri = "app://callback",
-            codeChallenge = "challenge",
-            state = "state-123",
-            nonce = "nonce-123",
-            scope = "openid"
+            createRequest()
         )
 
         val body = bodySlot.captured
@@ -123,14 +132,7 @@ class PushedAuthorizationRequestServiceTest {
         stubDeserialize(PushedAuthorizationResponse("urn:request_uri:abc"))
 
         PushedAuthorizationRequestService().pushAuthorizationRequest(
-            parEndpoint = parEndpoint,
-            clientId = "client-id",
-            redirectUri = "app://callback",
-            codeChallenge = "challenge",
-            state = "state-123",
-            nonce = "nonce-123",
-            scope = "openid",
-            dpopJkt = "jkt-thumbprint"
+            createRequest(dpopJkt = "jkt-thumbprint")
         )
 
         assertEquals("jkt-thumbprint", bodySlot.captured["dpop_jkt"])
@@ -143,13 +145,7 @@ class PushedAuthorizationRequestServiceTest {
         stubDeserialize(PushedAuthorizationResponse("urn:request_uri:abc"))
 
         PushedAuthorizationRequestService().pushAuthorizationRequest(
-            parEndpoint = parEndpoint,
-            clientId = "client-id",
-            redirectUri = "app://callback",
-            codeChallenge = "challenge",
-            state = "state-123",
-            nonce = "nonce-123",
-            scope = "openid"
+            createRequest()
         )
 
         assertFalse(bodySlot.captured.containsKey("dpop_jkt"))
@@ -162,16 +158,11 @@ class PushedAuthorizationRequestServiceTest {
         stubDeserialize(PushedAuthorizationResponse("urn:request_uri:abc"))
 
         PushedAuthorizationRequestService().pushAuthorizationRequest(
-            parEndpoint = parEndpoint,
-            clientId = "client-id",
-            redirectUri = "app://callback",
-            codeChallenge = "challenge",
-            state = "state-123",
-            nonce = "nonce-123",
-            scope = "openid",
-            clientAuthParams = mapOf(
-                "client_assertion_type" to "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-                "client_assertion" to "signed.jwt.value"
+            createRequest(
+                clientAuthParams = mapOf(
+                    "client_assertion_type" to "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                    "client_assertion" to "signed.jwt.value"
+                )
             )
         )
 
@@ -190,14 +181,10 @@ class PushedAuthorizationRequestServiceTest {
         stubDeserialize(PushedAuthorizationResponse("urn:request_uri:abc"))
 
         PushedAuthorizationRequestService().pushAuthorizationRequest(
-            parEndpoint = parEndpoint,
-            clientId = "real-client-id",
-            redirectUri = "app://callback",
-            codeChallenge = "challenge",
-            state = "state-123",
-            nonce = "nonce-123",
-            scope = "openid",
-            clientAuthParams = mapOf("client_id" to "malicious-id")
+            createRequest(
+                clientId = "real-client-id",
+                clientAuthParams = mapOf("client_id" to "malicious-id")
+            )
         )
 
         assertEquals("real-client-id", bodySlot.captured["client_id"])
@@ -211,13 +198,7 @@ class PushedAuthorizationRequestServiceTest {
 
         val ex = assertThrows<PushedAuthorizationRequestException> {
             PushedAuthorizationRequestService().pushAuthorizationRequest(
-                parEndpoint = parEndpoint,
-                clientId = "client-id",
-                redirectUri = "app://callback",
-                codeChallenge = "challenge",
-                state = "state-123",
-                nonce = "nonce-123",
-                scope = "openid"
+                createRequest()
             )
         }
         assertTrue(ex.message.contains("missing request_uri"))
@@ -237,13 +218,7 @@ class PushedAuthorizationRequestServiceTest {
 
         val ex = assertThrows<PushedAuthorizationRequestException> {
             PushedAuthorizationRequestService().pushAuthorizationRequest(
-                parEndpoint = parEndpoint,
-                clientId = "client-id",
-                redirectUri = "app://callback",
-                codeChallenge = "challenge",
-                state = "state-123",
-                nonce = "nonce-123",
-                scope = "openid"
+                createRequest()
             )
         }
         assertEquals("invalid_client", ex.issuerErrorCode)

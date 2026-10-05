@@ -25,12 +25,14 @@ class TokenService {
         txCode: String? = null,
         dpopManager: DPoPManager = DPoPManager(),
     ): TokenResponse = obtainAccessToken(
+       TokenRequestParams(
         grantType = GrantType.PRE_AUTHORIZED,
         getTokenResponse = getTokenResponse,
         tokenEndpoint = tokenEndpoint,
         preAuthCode = preAuthCode,
         txCode = txCode,
         dpopManager = dpopManager
+    )
     )
 
     suspend fun getAccessToken(
@@ -53,6 +55,8 @@ class TokenService {
         dpopManager = dpopManager
     )
     )
+    
+
 
     private suspend fun obtainAccessToken(
         params: TokenRequestParams
@@ -63,17 +67,16 @@ class TokenService {
             null
         }
         val tokenRequest = TokenRequest(
-            grantType,
-            tokenEndpoint,
-            authCode,
-            preAuthCode,
-            txCode,
-            clientId,
-            redirectUri,
-            codeVerifier,
+            params.grantType,
+            params.tokenEndpoint,
+            params.authCode,
+            params.preAuthCode,
+            params.txCode,
+            params.clientId,
+            params.redirectUri,
+            params.codeVerifier,
             dpopProof
         )
-        
-            getTokenResponse(tokenRequest )
-        }
+        return params.getTokenResponse(tokenRequest)
+    }
 }

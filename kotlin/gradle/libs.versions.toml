@@ -1,5 +1,5 @@
 [versions]
-kotlin = "1.9.23"
+kotlin = "1.9.25"
 dokka = "1.9.20"
 sonarqube = "5.1.0.4872"
 jacoco = "0.8.12"
@@ -17,7 +17,7 @@ junitJupiterApi = "5.10.2"
 orgJson = "20231013"
 coroutinesTest = "1.7.3"
 okio = "3.6.0"
-injiOpenid4vp = "1.0.0-beta-SNAPSHOT"
+injiOpenid4vp = "1.0.0-alpha.2-SNAPSHOT"
 
 [libraries]
 okHttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okHttp" }

@@ -15,6 +15,9 @@ import io.mosip.vciclient.exception.DownloadFailedException
 import io.mosip.vciclient.issuerMetadata.IssuerMetadataResult
 import io.mosip.vciclient.issuerMetadata.IssuerMetadataService
 import io.mosip.vciclient.proof.toProofBindingContext
+import io.mosip.vciclient.authorizationCodeFlow.AuthorizationCodeCredentialRequest
+import io.mosip.vciclient.authorizationCodeFlow.CredentialRequestConfiguration
+import io.mosip.vciclient.authorizationCodeFlow.CredentialRequestOptions
 
 data class TrustedIssuerCredentialRequest(
     val credentialIssuer: String,
@@ -45,16 +48,22 @@ class TrustedIssuerFlowHandler internal constructor(
 
         return when (issuerMetadata.issuerMetadata.specVersion) {
             OID4VCIVersion.V1 -> authService.requestCredentials(
-                issuerMetadata = issuerMetadata.issuerMetadata,
-                credentialConfigurationId = request.credentialConfigurationId,
-                clientMetadata = request.clientMetadata,
-                getTokenResponse = request.getTokenResponse,
-                getProofs = getProofs,
-                authorizationMethods = request.authorizationMethods,
-                downloadTimeOutInMillis = request.downloadTimeoutInMillis,
-                proofBindingContext = proofBindingContext,
-                dpopManager = request.dpopManager
-            )
+    request = AuthorizationCodeCredentialRequest(
+        configuration = CredentialRequestConfiguration(
+            issuerMetadata = issuerMetadata.issuerMetadata,
+            credentialConfigurationId = request.credentialConfigurationId,
+            clientMetadata = request.clientMetadata,
+            authorizationMethods = request.authorizationMethods,
+        ),
+        options = CredentialRequestOptions(
+            proofBindingContext = proofBindingContext,
+            downloadTimeoutInMillis = request.downloadTimeoutInMillis,
+            dpopManager = request.dpopManager,
+        ),
+        getTokenResponse = request.getTokenResponse,
+    ),
+    getProofs = getProofs,
+)
 
             OID4VCIVersion.DRAFT13 -> {
                 val proofJwtCallback: ProofJwtCallback = { proofRequestMetadata ->
@@ -63,16 +72,22 @@ class TrustedIssuerFlowHandler internal constructor(
                         ?: throw DownloadFailedException("Draft13 issuer requires a single JWT proof")
                 }
                 val draft13Response = authService.requestCredentialsDraft13(
-                    issuerMetadata = issuerMetadata.issuerMetadata,
-                    credentialConfigurationId = request.credentialConfigurationId,
-                    clientMetadata = request.clientMetadata,
-                    getTokenResponse = request.getTokenResponse,
-                    getProofJwt = proofJwtCallback,
-                    authorizationMethods = request.authorizationMethods,
-                    downloadTimeOutInMillis = request.downloadTimeoutInMillis,
-                    proofBindingContext = proofBindingContext,
-                    dpopManager = request.dpopManager
-                )
+    request = AuthorizationCodeCredentialRequest(
+        configuration = CredentialRequestConfiguration(
+            issuerMetadata = issuerMetadata.issuerMetadata,
+            credentialConfigurationId = request.credentialConfigurationId,
+            clientMetadata = request.clientMetadata,
+            authorizationMethods = request.authorizationMethods,
+        ),
+        options = CredentialRequestOptions(
+            proofBindingContext = proofBindingContext,
+            downloadTimeoutInMillis = request.downloadTimeoutInMillis,
+            dpopManager = request.dpopManager,
+        ),
+        getTokenResponse = request.getTokenResponse,
+    ),
+    getProofJwt = proofJwtCallback,
+)
                 CredentialResponse(
                     credentials = listOf(CredentialItem(draft13Response.credential)),
                     credentialConfigurationId = draft13Response.credentialConfigurationId,

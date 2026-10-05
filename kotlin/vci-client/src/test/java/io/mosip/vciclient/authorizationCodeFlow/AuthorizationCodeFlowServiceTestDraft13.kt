@@ -56,6 +56,42 @@ class AuthorizationCodeFlowServiceTest {
     private lateinit var getProofJwt: ProofJwtCallback
     private lateinit var getTokenResponse: TokenResponseCallback
 
+    private fun createRequest(
+        issuerMetadata: IssuerMetadata = resolvedIssuerMetadata,
+        credentialConfigurationId: String = this.credentialConfigurationId,
+        clientMetadata: ClientMetadata = this.clientMetadata,
+        getTokenResponse: TokenResponseCallback = this.getTokenResponse,
+        credentialOffer: CredentialOffer? = null,
+        downloadTimeOutInMillis: Long = downloadTimeout,
+        proofBindingContext: ProofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+        authorizationMethods: List<AuthorizationMethod> = listOf(authorizationMethod),
+        traceabilityId: String? = null,
+        dpopManager: DPoPManager? = null,
+    ) = AuthorizationCodeCredentialRequest(
+        configuration = CredentialRequestConfiguration(
+            issuerMetadata = issuerMetadata,
+            credentialConfigurationId = credentialConfigurationId,
+            clientMetadata = clientMetadata,
+            authorizationMethods = authorizationMethods,
+        ),
+        options = if (dpopManager != null) {
+            CredentialRequestOptions(
+                proofBindingContext = proofBindingContext,
+                credentialOffer = credentialOffer,
+                downloadTimeoutInMillis = downloadTimeOutInMillis,
+                traceabilityId = traceabilityId,
+                dpopManager = dpopManager,
+            )
+        } else {
+            CredentialRequestOptions(
+                proofBindingContext = proofBindingContext,
+                credentialOffer = credentialOffer,
+                downloadTimeoutInMillis = downloadTimeOutInMillis,
+                traceabilityId = traceabilityId,
+            )
+        },
+        getTokenResponse = getTokenResponse,
+    )
 
     @Before
     fun setup() {
@@ -96,18 +132,7 @@ class AuthorizationCodeFlowServiceTest {
         }
 
         every {
-            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
+            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
         } returns "https://auth.example.com/authorize"
 
         coEvery {
@@ -144,15 +169,8 @@ class AuthorizationCodeFlowServiceTest {
     fun `should return credential when flow is successful via non-interactive authorization flow`() =
         runBlocking {
             val result = AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(credentialOffer = credentialOffer),
                 getProofJwt = getProofJwt,
-                credentialOffer = credentialOffer,
-                downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
 
             assertEquals(mockCredentialResponse, result)
@@ -168,15 +186,8 @@ class AuthorizationCodeFlowServiceTest {
 
             val downloadFailureException = assertThrows<DownloadFailedException> {
                 AuthorizationCodeFlowService().requestCredentialsDraft13(
-                    issuerMetadata = resolvedIssuerMetadata,
-                    credentialConfigurationId = credentialConfigurationId,
-                    clientMetadata = clientMetadata,
-                    getTokenResponse = getTokenResponse,
+                    request = createRequest(credentialOffer = credentialOffer),
                     getProofJwt = getProofJwt,
-                    credentialOffer = credentialOffer,
-                    downloadTimeOutInMillis = downloadTimeout,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                    authorizationMethods = listOf(authorizationMethod),
                 )
             }
 
@@ -218,15 +229,8 @@ class AuthorizationCodeFlowServiceTest {
 
             val result =
                 AuthorizationCodeFlowService(interactiveAuthorizationHandler = mockInteractiveAuthHandler).requestCredentialsDraft13(
-                    issuerMetadata = resolvedIssuerMetadata,
-                    credentialConfigurationId = credentialConfigurationId,
-                    clientMetadata = clientMetadata,
-                    getTokenResponse = getTokenResponse,
+                    request = createRequest(credentialOffer = credentialOffer),
                     getProofJwt = getProofJwt,
-                    credentialOffer = credentialOffer,
-                    downloadTimeOutInMillis = downloadTimeout,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                    authorizationMethods = listOf(authorizationMethod),
                 )
             assertEquals(mockCredentialResponse, result)
         }
@@ -239,13 +243,8 @@ class AuthorizationCodeFlowServiceTest {
 
         val ex = assertThrows<DownloadFailedException> {
             AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(),
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -270,13 +269,8 @@ class AuthorizationCodeFlowServiceTest {
 
         val ex = assertThrows<DownloadFailedException> {
             AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(),
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -309,13 +303,8 @@ class AuthorizationCodeFlowServiceTest {
             AuthorizationCodeFlowService(
                 interactiveAuthorizationHandler = mockHandler
             ).requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(authorizationMethods = mockk(relaxed = true)),
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = mockk(relaxed = true)
             )
         }
         assertTrue(ex.message.contains("code not received"))
@@ -325,13 +314,8 @@ class AuthorizationCodeFlowServiceTest {
     fun `should throw when no authorizeUser callback is provided`() = runBlocking {
         val ex = assertThrows<DownloadFailedException> {
             AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(authorizationMethods = emptyList()),
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = emptyList(),
             )
         }
 
@@ -348,13 +332,8 @@ class AuthorizationCodeFlowServiceTest {
 
         val ex = assertThrows<DownloadFailedException> {
             AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(),
                 getProofJwt = failingProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -373,13 +352,8 @@ class AuthorizationCodeFlowServiceTest {
 
         val ex = assertThrows<DownloadFailedException> {
             AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(),
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -398,15 +372,8 @@ class AuthorizationCodeFlowServiceTest {
 
         val ex = assertThrows<DownloadFailedException> {
             AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(credentialOffer = credentialOffer),
                 getProofJwt = getProofJwt,
-                credentialOffer = credentialOffer,
-                downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -442,13 +409,8 @@ class AuthorizationCodeFlowServiceTest {
         val result = AuthorizationCodeFlowService(
             interactiveAuthorizationHandler = mockHandler
         ).requestCredentialsDraft13(
-            issuerMetadata = resolvedIssuerMetadata,
-            credentialConfigurationId = credentialConfigurationId,
-            clientMetadata = clientMetadata,
-            getTokenResponse = getTokenResponse,
+            request = createRequest(),
             getProofJwt = getProofJwt,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-            authorizationMethods = listOf(authorizationMethod),
         )
 
         assertEquals(mockCredentialResponse, result)
@@ -480,15 +442,8 @@ class AuthorizationCodeFlowServiceTest {
             AuthorizationCodeFlowService(
                 interactiveAuthorizationHandler = mockHandler
             ).requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(credentialOffer = credentialOffer),
                 getProofJwt = getProofJwt,
-                credentialOffer = credentialOffer,
-                downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -525,13 +480,8 @@ class AuthorizationCodeFlowServiceTest {
             AuthorizationCodeFlowService(
                 interactiveAuthorizationHandler = mockHandler
             ).requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(),
                 getProofJwt = getProofJwt,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -561,15 +511,8 @@ class AuthorizationCodeFlowServiceTest {
             AuthorizationCodeFlowService(
                 interactiveAuthorizationHandler = mockHandler
             ).requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(credentialOffer = credentialOffer),
                 getProofJwt = getProofJwt,
-                credentialOffer = credentialOffer,
-                downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -591,15 +534,8 @@ class AuthorizationCodeFlowServiceTest {
 
         val ex = assertThrows<DownloadFailedException> {
             AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(credentialOffer = credentialOffer),
                 getProofJwt = getProofJwt,
-                credentialOffer = credentialOffer,
-                downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -621,15 +557,8 @@ class AuthorizationCodeFlowServiceTest {
 
         val ex = assertThrows<DownloadFailedException> {
             AuthorizationCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
+                request = createRequest(credentialOffer = credentialOffer),
                 getProofJwt = getProofJwt,
-                credentialOffer = credentialOffer,
-                downloadTimeOutInMillis = downloadTimeout,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                authorizationMethods = listOf(authorizationMethod),
             )
         }
 
@@ -672,13 +601,8 @@ fun `should throw when interactive authorization is required but endpoint is mis
 
     val exception = assertThrows<DownloadFailedException> {
         AuthorizationCodeFlowService().requestCredentialsDraft13(
-            issuerMetadata = resolvedIssuerMetadata,
-            credentialConfigurationId = credentialConfigurationId,
-            clientMetadata = clientMetadata,
-            getTokenResponse = getTokenResponse,
+            request = createRequest(),
             getProofJwt = getProofJwt,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-            authorizationMethods = listOf(authorizationMethod)
         )
     }
 
@@ -709,14 +633,8 @@ fun `should throw when interactive authorization is required but endpoint is mis
         AuthorizationCodeFlowService(
             interactiveAuthorizationHandler = mockHandler
         ).requestCredentialsDraft13(
-            issuerMetadata = resolvedIssuerMetadata,
-            credentialConfigurationId = credentialConfigurationId,
-            clientMetadata = clientMetadata,
-            getTokenResponse = getTokenResponse,
+            request = createRequest(dpopManager = dpopManager),
             getProofJwt = getProofJwt,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-            authorizationMethods = listOf(authorizationMethod),
-            dpopManager = dpopManager
         )
 
         assertEquals(dpopManager.jwkThumbprint(), jktSlot.captured)

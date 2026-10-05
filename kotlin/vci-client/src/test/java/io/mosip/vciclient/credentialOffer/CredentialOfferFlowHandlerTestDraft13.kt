@@ -50,6 +50,20 @@ class CredentialOfferFlowHandlerTest {
     private lateinit var getTokenResponse: TokenResponseCallback
     private lateinit var onCheckIssuerTrust: CheckIssuerTrustCallback
 
+    private fun createDownloadRequest(
+        traceabilityId: String? = null,
+    ) = CredentialDownloadRequest(
+        authorizationCodeOptions = AuthorizationCodeRequestOptions(
+            clientMetadata = mockClientMetadata,
+            authorizationMethods = listOf(authorizationMethod),
+            traceabilityId = traceabilityId
+        ),
+        transactionOptions = CredentialTransactionOptions(
+            getTxCode = txCode,
+            getTokenResponse = getTokenResponse,
+            onCheckIssuerTrust = onCheckIssuerTrust,
+        )
+    )
 
     @Before
     fun setup() {
@@ -112,13 +126,8 @@ class CredentialOfferFlowHandlerTest {
         coEvery {
             anyConstructed<PreAuthCodeFlowService>().requestCredentialsDraft13(
                 any(),
-                ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
                 any(),
-                any(),
-                any(),
-                any(),
-                offer = any(),
-                dpopManager = any()
+                any()
             )
         } returns mockCredentialResponse
 
@@ -127,12 +136,8 @@ class CredentialOfferFlowHandlerTest {
 
         val result = CredentialOfferFlowHandler().downloadCredentialsDraft13(
             credentialOffer = "some-offer",
-            clientMetadata = mockClientMetadata,
-            getTxCode = txCode,
-            getTokenResponse = getTokenResponse,
             getProofJwt = getProofJwt,
-            authorizationMethods = listOf(authorizationMethod),
-            onCheckIssuerTrust = onCheckIssuerTrust,
+            request = createDownloadRequest()
         )
 
         assertEquals(mockCredentialResponse, result)
@@ -152,12 +157,8 @@ class CredentialOfferFlowHandlerTest {
         assertThrows<CredentialOfferFetchFailedException> {
             CredentialOfferFlowHandler().downloadCredentialsDraft13(
                 credentialOffer = "some-offer",
-                clientMetadata = mockClientMetadata,
-                getTxCode = txCode,
-                getTokenResponse = getTokenResponse,
                 getProofJwt = getProofJwt,
-                authorizationMethods = listOf(authorizationMethod),
-                onCheckIssuerTrust = onCheckIssuerTrust,
+                request = createDownloadRequest()
             )
         }
     }
@@ -177,12 +178,7 @@ class CredentialOfferFlowHandlerTest {
             anyConstructed<PreAuthCodeFlowService>().requestCredentialsDraft13(
                 any(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                offer = any(),
-                dpopManager = any()
+                any()
             )
         } returns CredentialResponseDraft13(
             credential = JsonNull.INSTANCE,
@@ -196,12 +192,8 @@ class CredentialOfferFlowHandlerTest {
         assertThrows<CredentialOfferFetchFailedException> {
             CredentialOfferFlowHandler().downloadCredentialsDraft13(
                 credentialOffer = "some-offer",
-                clientMetadata = mockClientMetadata,
-                getTxCode = txCode,
-                getTokenResponse = getTokenResponse,
-                authorizationMethods = listOf(authorizationMethod),
                 getProofJwt = getProofJwt,
-                onCheckIssuerTrust = onCheckIssuerTrust,
+                request = createDownloadRequest()
             )
         }
     }
@@ -227,12 +219,8 @@ class CredentialOfferFlowHandlerTest {
             assertThrows<CredentialOfferFetchFailedException> {
                 CredentialOfferFlowHandler().downloadCredentialsDraft13(
                     credentialOffer = "some-offer",
-                    clientMetadata = mockClientMetadata,
-                    getTxCode = txCode,
-                    getTokenResponse = getTokenResponse,
-                    authorizationMethods = listOf(authorizationMethod),
                     getProofJwt = getProofJwt,
-                    onCheckIssuerTrust = onCheckIssuerTrust,
+                    request = createDownloadRequest()
                 )
             }
         }
@@ -256,12 +244,8 @@ class CredentialOfferFlowHandlerTest {
             val downloadFailedException = assertThrows<DownloadFailedException> {
                 CredentialOfferFlowHandler().downloadCredentialsDraft13(
                     credentialOffer = "some-offer",
-                    clientMetadata = mockClientMetadata,
-                    getTxCode = txCode,
-                    getTokenResponse = getTokenResponse,
-                    authorizationMethods = listOf(authorizationMethod),
                     getProofJwt = getProofJwt,
-                    onCheckIssuerTrust = onCheckIssuerTrust,
+                    request = createDownloadRequest()
                 )
             }
 
@@ -286,12 +270,8 @@ class CredentialOfferFlowHandlerTest {
             runBlocking {
                 handler.downloadCredentialsDraft13(
                     credentialOffer = "dummy-offer",
-                    clientMetadata = mockClientMetadata,
-                    getTxCode = txCode,
-                    getTokenResponse = getTokenResponse,
                     getProofJwt = getProofJwt,
-                    authorizationMethods = listOf(authorizationMethod),
-                    onCheckIssuerTrust = onCheckIssuerTrust
+                    request = createDownloadRequest()
                 )
             }
         }
@@ -314,12 +294,6 @@ class CredentialOfferFlowHandlerTest {
             anyConstructed<PreAuthCodeFlowService>().requestCredentialsDraft13(
                 any(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
                 any()
             )
         } returns CredentialResponseDraft13(
@@ -332,12 +306,8 @@ class CredentialOfferFlowHandlerTest {
             runBlocking {
                 handler.downloadCredentialsDraft13(
                     credentialOffer = "dummy-offer",
-                    clientMetadata = mockClientMetadata,
-                    getTxCode = txCode,
-                    getTokenResponse = getTokenResponse,
                     getProofJwt = getProofJwt,
-                    authorizationMethods = listOf(authorizationMethod),
-                    onCheckIssuerTrust = onCheckIssuerTrust
+                    request = createDownloadRequest()
                 )
             }
         }
@@ -358,12 +328,8 @@ class CredentialOfferFlowHandlerTest {
             runBlocking {
                 handler.downloadCredentialsDraft13(
                     credentialOffer = "dummy-offer",
-                    clientMetadata = mockClientMetadata,
-                    getTxCode = txCode,
-                    getTokenResponse = getTokenResponse,
                     getProofJwt = getProofJwt,
-                    authorizationMethods = listOf(authorizationMethod),
-                    onCheckIssuerTrust = onCheckIssuerTrust
+                    request = createDownloadRequest()
                 )
             }
         }
@@ -382,12 +348,6 @@ class CredentialOfferFlowHandlerTest {
             anyConstructed<PreAuthCodeFlowService>().requestCredentialsDraft13(
                 any(),
                 any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
                 any()
             )
         } returns mockCredentialResponse
@@ -396,12 +356,8 @@ class CredentialOfferFlowHandlerTest {
             runBlocking {
                 handler.downloadCredentialsDraft13(
                     credentialOffer = "dummy-offer",
-                    clientMetadata = mockClientMetadata,
-                    getTxCode = txCode,
-                    getTokenResponse = getTokenResponse,
                     getProofJwt = getProofJwt,
-                    authorizationMethods = listOf(authorizationMethod),
-                    onCheckIssuerTrust = onCheckIssuerTrust
+                    request = createDownloadRequest()
                 )
             }
         }
@@ -445,29 +401,15 @@ class CredentialOfferFlowHandlerTest {
 
         coEvery {
             anyConstructed<AuthorizationCodeFlowService>().requestCredentialsDraft13(
-                issuerMetadata = issuerMetadataResult.issuerMetadata,
-                credentialConfigurationId = "UniversityDegreeCredential",
-                clientMetadata = mockClientMetadata,
-                getTokenResponse = getTokenResponse,
-                getProofJwt = getProofJwt,
-                credentialOffer = offer,
-                downloadTimeOutInMillis = any(),
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
-                authorizationMethods = listOf(authorizationMethod),
-                traceabilityId = "trace-id",
-                dpopManager = any()
+                any(),
+                any()
             )
         } returns mockCredentialResponse
 
         val result = CredentialOfferFlowHandler().downloadCredentialsDraft13(
             credentialOffer = "some-offer",
-            clientMetadata = mockClientMetadata,
-            getTxCode = txCode,
-            getTokenResponse = getTokenResponse,
             getProofJwt = getProofJwt,
-            authorizationMethods = listOf(authorizationMethod),
-            onCheckIssuerTrust = onCheckIssuerTrust,
-            traceabilityId = "trace-id"
+            request = createDownloadRequest(traceabilityId = "trace-id")
         )
 
         assertEquals(mockCredentialResponse, result)

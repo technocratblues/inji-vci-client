@@ -101,9 +101,7 @@ class VCIClientTest {
     @Test
     fun `should return credential when trusted issuer flow succeeds`() = runBlocking {
         coEvery {
-            anyConstructed<TrustedIssuerFlowHandler>().downloadCredentials(
-                any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            anyConstructed<TrustedIssuerFlowHandler>().downloadCredentials(any(), any())
         } returns mockCredentialResponse
 
         val result = VCIClient("trace-id").fetchCredentialsFromTrustedIssuer(
@@ -173,9 +171,7 @@ class VCIClientTest {
     @Test
     fun `should return credential when credential offer flow succeeds`() = runBlocking {
         coEvery {
-            anyConstructed<CredentialOfferFlowHandler>().downloadCredentials(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            anyConstructed<CredentialOfferFlowHandler>().downloadCredentials(any(), any(), any())
         } returns mockCredentialResponse
 
         val result = VCIClient("trace-id").fetchCredentialsUsingCredentialOffer(
@@ -195,9 +191,7 @@ class VCIClientTest {
     @Test
     fun `should throw VCIClientException when trusted issuer flow throws`() {
         coEvery {
-            anyConstructed<TrustedIssuerFlowHandler>().downloadCredentials(
-                any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            anyConstructed<TrustedIssuerFlowHandler>().downloadCredentials(any(), any())
         } throws Exception("flow error")
 
         assertThrows<VCIClientException> {
@@ -218,9 +212,7 @@ class VCIClientTest {
     @Test
     fun `should preserve existing VCIClientException details from trusted issuer flow`() {
         coEvery {
-            anyConstructed<TrustedIssuerFlowHandler>().downloadCredentials(
-                any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            anyConstructed<TrustedIssuerFlowHandler>().downloadCredentials(any(), any())
         } throws VCIClientException(
             code = "VCI-777",
             message = "trusted issuer failed",
@@ -249,9 +241,7 @@ class VCIClientTest {
     @Test
     fun `should throw VCIClientException when credential offer flow throws`() {
         coEvery {
-            anyConstructed<CredentialOfferFlowHandler>().downloadCredentials(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            anyConstructed<CredentialOfferFlowHandler>().downloadCredentials(any(), any(), any())
         } throws Exception("flow error")
 
         assertThrows<VCIClientException> {
@@ -273,9 +263,7 @@ class VCIClientTest {
     @Test
     fun `should preserve existing VCIClientException details from credential offer flow`() {
         coEvery {
-            anyConstructed<CredentialOfferFlowHandler>().downloadCredentials(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            anyConstructed<CredentialOfferFlowHandler>().downloadCredentials(any(), any(), any())
         } throws VCIClientException(
             code = "VCI-778",
             message = "credential offer failed",

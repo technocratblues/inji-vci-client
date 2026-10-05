@@ -80,6 +80,19 @@ class PreAuthCodeFlowServiceTest {
         unmockkAll()
     }
 
+    private fun createContext() = CredentialRequestContext(
+        issuerMetadata = resolvedIssuerMetaData,
+        proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+        credentialConfigurationId = credentialConfigurationId,
+    )
+
+    private fun createOptions(offer: CredentialOffer, txCode: TxCodeCallback? = getTxCode) = PreAuthFlowOptions(
+        getTokenResponse = mockk(relaxed = true),
+        offer = offer,
+        getTxCode = txCode,
+        downloadTimeoutInMillis = 10000L,
+    )
+
     @Test
     fun `should return credential when token is retrieved successfully`() = runBlocking {
         mockkConstructor(TokenService::class)
@@ -112,14 +125,9 @@ class PreAuthCodeFlowServiceTest {
         )
 
         val result = PreAuthCodeFlowService().requestCredentialsDraft13(
-            issuerMetadata = resolvedIssuerMetaData,
-            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-            getTokenResponse = mockk(relaxed = true),
+            context = createContext(),
+            options = createOptions(offer),
             getProofJwt = getProofJwt,
-            credentialConfigurationId = credentialConfigurationId,
-            getTxCode = getTxCode,
-            downloadTimeoutInMillis = 10000L,
-            offer = offer
         )
 
         assertEquals(mockCredentialResponse, result)
@@ -142,14 +150,9 @@ class PreAuthCodeFlowServiceTest {
 
             val exception = assertThrows<DownloadFailedException> {
                 PreAuthCodeFlowService().requestCredentialsDraft13(
-                    issuerMetadata = resolvedIssuerMetaData,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                    getTokenResponse = mockk(relaxed = true),
+                    context = createContext(),
+                    options = createOptions(offer, txCode = null),
                     getProofJwt = getProofJwt,
-                    credentialConfigurationId = credentialConfigurationId,
-                    getTxCode = null,
-                    downloadTimeoutInMillis = 10000L,
-                    offer = offer
                 )
             }
 
@@ -174,14 +177,9 @@ class PreAuthCodeFlowServiceTest {
 
         val exception = assertThrows<DownloadFailedException> {
             PreAuthCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetaData,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                getTokenResponse =  mockk(relaxed = true),
+                context = createContext(),
+                options = createOptions(offer),
                 getProofJwt = getProofJwt,
-                credentialConfigurationId = credentialConfigurationId,
-                getTxCode = getTxCode,
-                downloadTimeoutInMillis = 10000L,
-                offer = offer
             )
         }
 
@@ -200,14 +198,9 @@ class PreAuthCodeFlowServiceTest {
         val exception = assertThrows<DownloadFailedException> {
             runBlocking {
                 PreAuthCodeFlowService().requestCredentialsDraft13(
-                    issuerMetadata = resolvedIssuerMetaData,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                    getTokenResponse = mockk(relaxed = true),
+                    context = createContext(),
+                    options = createOptions(offer),
                     getProofJwt = getProofJwt,
-                    credentialConfigurationId = credentialConfigurationId,
-                    getTxCode = getTxCode,
-                    downloadTimeoutInMillis = 10000L,
-                    offer = offer
                 )
             }
         }
@@ -243,14 +236,9 @@ class PreAuthCodeFlowServiceTest {
 
         val ex = assertThrows<DownloadFailedException> {
             PreAuthCodeFlowService().requestCredentialsDraft13(
-                issuerMetadata = resolvedIssuerMetaData,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
-                getTokenResponse = mockk(relaxed = true),
+                context = createContext(),
+                options = createOptions(offer),
                 getProofJwt = getProofJwt,
-                credentialConfigurationId = credentialConfigurationId,
-                getTxCode = getTxCode,
-                downloadTimeoutInMillis = 10000L,
-                offer = offer
             )
         }
 

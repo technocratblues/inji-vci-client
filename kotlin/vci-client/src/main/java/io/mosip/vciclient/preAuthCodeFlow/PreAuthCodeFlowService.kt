@@ -21,13 +21,13 @@ import io.mosip.vciclient.proof.jwt.JWTProof
 import io.mosip.vciclient.token.TokenResponse
 import io.mosip.vciclient.token.TokenService
 
-data class CredentialRequestContext(
+internal data class CredentialRequestContext(
     val issuerMetadata: IssuerMetadata,
     val proofBindingContext: ProofBindingContext,
     val credentialConfigurationId: String,
 )
 
-data class PreAuthFlowOptions(
+internal data class PreAuthFlowOptions(
     val getTokenResponse: TokenResponseCallback,
     val offer: CredentialOffer,
     val getTxCode: TxCodeCallback? = null,
@@ -42,7 +42,7 @@ internal class PreAuthCodeFlowService(
     private val nonceService: NonceService = NonceService(),
 ) {
     suspend fun requestCredentials(
-         context: CredentialRequestContext,
+        context: CredentialRequestContext,
         options: PreAuthFlowOptions,
         getProofs: ProofsCallback,
     ): CredentialResponse {
@@ -51,13 +51,15 @@ internal class PreAuthCodeFlowService(
             options = options,
         ) { token ->
             val nonce = resolveNonce(
-             issuerMetadata = context.issuerMetadata,
-             downloadTimeoutInMillis = options.downloadTimeoutInMillis, 
-             dpopManager = options.dpopManager,
-              )
+                issuerMetadata = context.issuerMetadata,
+                timeoutInMillis = options.downloadTimeoutInMillis,
+                dpopManager = options.dpopManager,
+            )
             val proofs = try {
                 getProofs(
-                    proofBindingContext.toCredentialRequestProofMetadata(context.issuerMetadata.credentialIssuer, nonce)
+                    context.proofBindingContext.toCredentialRequestProofMetadata(
+                        context.issuerMetadata.credentialIssuer, nonce
+                    )
                 )
             } catch (e: Exception) {
                 throw DownloadFailedException(
@@ -67,13 +69,13 @@ internal class PreAuthCodeFlowService(
             }
 
             credentialExecutor.requestCredential(
-                issuerMetadata = issuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
+                issuerMetadata = context.issuerMetadata,
+                credentialConfigurationId = context.credentialConfigurationId,
                 proofs = proofs,
                 accessToken = token.accessToken,
-                downloadTimeoutInMillis = downloadTimeoutInMillis,
+                downloadTimeoutInMillis = options.downloadTimeoutInMillis,
                 tokenType = token.tokenType,
-                dpopManager = dpopManager
+                dpopManager = options.dpopManager
             )
         }
     }
@@ -84,13 +86,15 @@ internal class PreAuthCodeFlowService(
         getProofJwt: ProofJwtCallback,
     ): CredentialResponseDraft13 {
         return executeRequestCredentials(
-            issuerMetadata = context.issuerMetadata
-            options = options,
+            issuerMetadata = context.issuerMetadata,
+            options = options
         ) { token ->
             val nonce = NonceService.extractNonceFromTokenResponse(token)
             val jwt = try {
                 getProofJwt(
-                    context.proofBindingContext.toCredentialRequestProofMetadata(context.issuerMetadata.credentialIssuer, nonce)
+                    context.proofBindingContext.toCredentialRequestProofMetadata(
+                        context.issuerMetadata.credentialIssuer, nonce
+                    )
                 )
             } catch (e: Exception) {
                 throw DownloadFailedException(
@@ -100,26 +104,26 @@ internal class PreAuthCodeFlowService(
             }
 
             credentialExecutor.requestCredentialDraft13(
-                issuerMetadata = issuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
+                issuerMetadata = context.issuerMetadata,
+                credentialConfigurationId = context.credentialConfigurationId,
                 proof = JWTProof(jwt),
                 accessToken = token.accessToken,
-                downloadTimeoutInMillis = downloadTimeoutInMillis,
+                downloadTimeoutInMillis = options.downloadTimeoutInMillis,
                 tokenType = token.tokenType,
-                dpopManager = dpopManager
+                dpopManager = options.dpopManager
             )
         }
     }
 
     private suspend fun <Response> executeRequestCredentials(
         issuerMetadata: IssuerMetadata,
-        otpions:PreAuthFlowOptions,
+        options: PreAuthFlowOptions,
         requestCredential: suspend (TokenResponse) -> Response?,
     ): Response {
         try {
             val authorizationServerMetadata = authServerResolver.resolveForPreAuth(
                 issuerMetadata = issuerMetadata,
-                credentialOffer = offer
+                credentialOffer = options.offer
             )
 
             val tokenEndpoint = authorizationServerMetadata.tokenEndpoint
@@ -130,10 +134,10 @@ internal class PreAuthCodeFlowService(
                 authorizationServerMetadata.dpopSigningAlgValuesSupported
             )
 
-            val grant = offer.grants?.preAuthorizedGrant
+            val grant = options.offer.grants?.preAuthorizedGrant
                 ?: throw InvalidDataProvidedException("Missing pre-authorized grant details.")
 
-             val txCode = grant.txCode?.let { txCodeInfo ->
+            val txCode = grant.txCode?.let { txCodeInfo ->
                 options.getTxCode?.invoke(
                     txCodeInfo.inputMode,
                     txCodeInfo.description,
@@ -141,16 +145,16 @@ internal class PreAuthCodeFlowService(
                 )
             }
 
-            if (grants.txCode != null && txCode == null) {
+            if (grant.txCode != null && txCode == null) {
                 throw DownloadFailedException("tx_code required but no provider was given.")
             }
 
             val token = tokenService.getAccessToken(
-                getTokenResponse = getTokenResponse,
+                getTokenResponse = options.getTokenResponse,
                 tokenEndpoint = tokenEndpoint,
                 preAuthCode = grant.preAuthCode,
                 txCode = txCode,
-                dpopManager = dpopManager
+                dpopManager = options.dpopManager
             )
 
             return requestCredential(token)
@@ -177,4 +181,4 @@ internal class PreAuthCodeFlowService(
         timeoutInMillis: Long,
         dpopManager: DPoPManager,
     ): String? = nonceService.fetchNonce(issuerMetadata, timeoutInMillis, dpopManager)
-    }
+}

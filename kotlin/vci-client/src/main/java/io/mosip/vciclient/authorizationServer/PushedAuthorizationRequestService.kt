@@ -54,14 +54,14 @@ private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
     ): PushedAuthorizationResponse = withContext(ioDispatcher) {
         val params = mutableMapOf<String, String>()
 
-        params.putAll(clientAuthParams)
-        params["response_type"] = responseType.value
-        params["client_id"] = clientId
-        params["redirect_uri"] = redirectUri
-        params["code_challenge"] = codeChallenge
-        params["code_challenge_method"] = codeChallengeMethod.value
-        params["state"] = state
-        params["nonce"] = nonce
+        params.putAll(request.options.clientAuthParams)
+        params["response_type"] = request.security.responseType.value
+        params["client_id"] = request.client.clientId
+        params["redirect_uri"] = request.client.redirectUri
+        params["code_challenge"] = request.security.codeChallenge
+        params["code_challenge_method"] = request.security.codeChallengeMethod.value
+        params["state"] = request.security.state
+        params["nonce"] = request.security.nonce
         if (!request.client.scope.isNullOrBlank()) {
             params["scope"] = request.client.scope
         }
@@ -69,26 +69,26 @@ private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
             params["dpop_jkt"] = request.security.dpopJkt
         }
 
-        logger.info("Pushing authorization request to PAR endpoint: $parEndpoint")
+        logger.info("Pushing authorization request to PAR endpoint: ${request.parEndpoint}")
 
         val response = try {
             NetworkManager.sendRequest(
-                url = parEndpoint,
+                url = request.parEndpoint,
                 method = HttpMethod.POST,
                 headers = mapOf(CONTENT_TYPE to APPLICATION_X_WWW_FORM_URLENCODED),
                 bodyParams = params,
-                timeoutMillis = timeoutMillis,
+                timeoutMillis = request.options.timeoutMillis,
             )
         } catch (e: VCIClientException) {
             throw PushedAuthorizationRequestException(
-                "PAR request failed at $parEndpoint: ${e.message}",
+                "PAR request failed at ${request.parEndpoint}: ${e.message}",
                 issuerErrorCode = e.issuerErrorCode,
                 issuerErrorDescription = e.issuerErrorDescription,
                 cause = e,
             )
         } catch (e: Exception) {
             throw PushedAuthorizationRequestException(
-                "PAR request failed at $parEndpoint: ${e.message}",
+                "PAR request failed at ${request.parEndpoint}: ${e.message}",
                 issuerErrorCode = null,
                 issuerErrorDescription = null,
                 cause = e,
@@ -100,7 +100,7 @@ private val ioDispatcher: CoroutineDispatcher = Dispatchers.IO
         )
         if (parResponse == null || parResponse.requestUri.isNullOrBlank()) {
             throw PushedAuthorizationRequestException(
-                "Invalid PAR response from $parEndpoint: missing request_uri"
+                "Invalid PAR response from ${request.parEndpoint}: missing request_uri"
             )
         }
         parResponse

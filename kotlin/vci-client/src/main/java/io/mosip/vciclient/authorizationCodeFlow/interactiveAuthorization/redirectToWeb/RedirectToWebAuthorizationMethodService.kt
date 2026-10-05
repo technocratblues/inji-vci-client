@@ -1,6 +1,5 @@
 package io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.redirectToWeb
 
-import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.request.InitialRequest
 import io.mosip.vciclient.authorizationCodeFlow.implicitAuthorization.ImplicitAuthorizationRequestData
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.handler.AuthorizationMethodService
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.request.AuthorizationRequestData
@@ -8,6 +7,9 @@ import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.respons
 import io.mosip.vciclient.authorizationCodeFlow.interactiveAuthorization.handler.InteractionType
 import io.mosip.vciclient.authorizationServer.AuthorizationUrlBuilder
 import io.mosip.vciclient.authorizationServer.PushedAuthorizationRequestService
+import io.mosip.vciclient.authorizationServer.PushedAuthorizationClientDetails
+import io.mosip.vciclient.authorizationServer.PushedAuthorizationRequest
+import io.mosip.vciclient.authorizationServer.PushedAuthorizationSecurityDetails
 import io.mosip.vciclient.constants.OpenWebPageCallback
 import io.mosip.vciclient.exception.InteractiveAuthorizationException
 import io.mosip.vciclient.exception.PushedAuthorizationRequestException
@@ -91,14 +93,20 @@ class RedirectToWebAuthorizationMethodService(
         parEndpoint: String,
     ): String {
         val parResponse = parService.pushAuthorizationRequest(
-            parEndpoint = parEndpoint,
-            clientId = requestData.clientMetadata.clientId,
-            redirectUri = requestData.clientMetadata.redirectUri,
-            codeChallenge = requestData.pkceSession.codeChallenge,
-            state = requestData.pkceSession.state,
-            nonce = requestData.pkceSession.nonce,
-            scope = requestData.scope,
-            dpopJkt = requestData.dpopJkt
+            PushedAuthorizationRequest(
+                parEndpoint = parEndpoint,
+                client = PushedAuthorizationClientDetails(
+                    clientId = requestData.clientMetadata.clientId,
+                    redirectUri = requestData.clientMetadata.redirectUri,
+                    scope = requestData.scope,
+                ),
+                security = PushedAuthorizationSecurityDetails(
+                    codeChallenge = requestData.pkceSession.codeChallenge,
+                    state = requestData.pkceSession.state,
+                    nonce = requestData.pkceSession.nonce,
+                    dpopJkt = requestData.dpopJkt,
+                ),
+            )
         )
         val requestUri = parResponse.requestUri
             ?: throw PushedAuthorizationRequestException(
@@ -115,14 +123,20 @@ class RedirectToWebAuthorizationMethodService(
         requestData: ImplicitAuthorizationRequestData,
     ): String {
         return AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-            baseUrl = requestData.authorizeUrl,
-            clientId = requestData.clientMetadata.clientId,
-            redirectUri = requestData.clientMetadata.redirectUri,
-            scope = requestData.scope,
-            state = requestData.pkceSession.state,
-            codeChallenge = requestData.pkceSession.codeChallenge,
-            nonce = requestData.pkceSession.nonce,
-            dpopJkt = requestData.dpopJkt
+            io.mosip.vciclient.authorizationServer.AuthorizationRequest(
+                baseUrl = requestData.authorizeUrl,
+                client = io.mosip.vciclient.authorizationServer.AuthorizationClientDetails(
+                    clientId = requestData.clientMetadata.clientId,
+                    redirectUri = requestData.clientMetadata.redirectUri,
+                    scope = requestData.scope,
+                ),
+                security = io.mosip.vciclient.authorizationServer.AuthorizationSecurityDetails(
+                    state = requestData.pkceSession.state,
+                    codeChallenge = requestData.pkceSession.codeChallenge,
+                    nonce = requestData.pkceSession.nonce,
+                    dpopJkt = requestData.dpopJkt,
+                ),
+            )
         )
     }
 }

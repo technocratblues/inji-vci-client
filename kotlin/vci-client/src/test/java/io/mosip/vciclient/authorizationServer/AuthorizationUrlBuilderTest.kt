@@ -8,14 +8,20 @@ class AuthorizationUrlBuilderTest {
     @Test
     fun `build should return exact expected URL using form-url-encoding`() {
         val actual = AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-            baseUrl = "https://example.com/auth",
-            clientId = "myClientId",
-            redirectUri = "https://myapp.com/callback",
-            scope = "openid profile email",
-            state = "abc123",
-            codeChallenge = "xyzChallenge",
-            nonce = "randomNonce",
-            dpopJkt = "dpopJkt"
+            AuthorizationRequest(
+                baseUrl = "https://example.com/auth",
+                client = AuthorizationClientDetails(
+                    clientId = "myClientId",
+                    redirectUri = "https://myapp.com/callback",
+                    scope = "openid profile email"
+                ),
+                security = AuthorizationSecurityDetails(
+                    state = "abc123",
+                    codeChallenge = "xyzChallenge",
+                    nonce = "randomNonce",
+                    dpopJkt = "dpopJkt"
+                )
+            )
         )
 
         val expected = "https://example.com/auth" +
@@ -50,14 +56,20 @@ class AuthorizationUrlBuilderTest {
     @Test
     fun `build should append dpop_jkt when provided`() {
         val actual = AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-            baseUrl = "https://example.com/auth",
-            clientId = "myClientId",
-            redirectUri = "https://myapp.com/callback",
-            scope = "openid",
-            state = "abc123",
-            codeChallenge = "xyzChallenge",
-            nonce = "randomNonce",
-            dpopJkt = "thumb-print-value"
+            AuthorizationRequest(
+                baseUrl = "https://example.com/auth",
+                client = AuthorizationClientDetails(
+                    clientId = "myClientId",
+                    redirectUri = "https://myapp.com/callback",
+                    scope = "openid"
+                ),
+                security = AuthorizationSecurityDetails(
+                    state = "abc123",
+                    codeChallenge = "xyzChallenge",
+                    nonce = "randomNonce",
+                    dpopJkt = "thumb-print-value"
+                )
+            )
         )
 
         assertEquals(true, actual.endsWith("&dpop_jkt=thumb-print-value"))

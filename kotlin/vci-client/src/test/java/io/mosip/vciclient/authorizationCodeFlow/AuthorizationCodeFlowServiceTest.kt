@@ -60,6 +60,23 @@ class AuthorizationCodeFlowServiceV1Test {
         nonce = "state-nonce"
     )
 
+    private fun createRequest(
+        timeout: Long = 10_000,
+        tokenCallback: suspend (io.mosip.vciclient.token.TokenRequest) -> TokenResponse = { error("unused") }
+    ) = AuthorizationCodeCredentialRequest(
+        configuration = CredentialRequestConfiguration(
+            issuerMetadata = issuerMetadata,
+            credentialConfigurationId = "UniversityDegreeCredential",
+            clientMetadata = clientMetadata,
+            authorizationMethods = authorizationMethods,
+        ),
+        options = CredentialRequestOptions(
+            proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256")),
+            downloadTimeoutInMillis = timeout
+        ),
+        getTokenResponse = tokenCallback
+    )
+
     @Test
     fun `requestCredentials should fetch nonce and request credential for v1 issuers`() {
         runBlocking {
@@ -98,19 +115,16 @@ class AuthorizationCodeFlowServiceV1Test {
             } returns expectedResponse
 
             val response = service.requestCredentials(
-                issuerMetadata = issuerMetadata,
-                credentialConfigurationId = "UniversityDegreeCredential",
-                clientMetadata = clientMetadata,
-                getTokenResponse = { error("token callback should not be used directly") },
+                request = createRequest(
+                    timeout = 15_000,
+                    tokenCallback = { error("token callback should not be used directly") }
+                ),
                 getProofs = { proofRequest ->
                     assertEquals("https://issuer.example.com", proofRequest.credentialIssuer)
                     assertEquals("nonce-123", proofRequest.nonce)
                     assertEquals(listOf("ES256"), proofRequest.proofSigningAlgorithmsSupported)
                     io.mosip.vciclient.proof.CredentialRequestProofs(proofs = listOf("proof-1"))
-                },
-                authorizationMethods = authorizationMethods,
-                downloadTimeOutInMillis = 15_000,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"))
+                }
             )
 
             assertEquals(expectedResponse, response)
@@ -138,13 +152,8 @@ class AuthorizationCodeFlowServiceV1Test {
         val exception = assertThrows(DownloadFailedException::class.java) {
             runBlocking {
                 service.requestCredentials(
-                    issuerMetadata = issuerMetadata,
-                    credentialConfigurationId = "UniversityDegreeCredential",
-                    clientMetadata = clientMetadata,
-                    getTokenResponse = { error("unused") },
-                    getProofs = { _ -> throw IllegalStateException("proof generation failed") },
-                    authorizationMethods = authorizationMethods,
-                    proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"))
+                    request = createRequest(),
+                    getProofs = { _ -> throw IllegalStateException("proof generation failed") }
                 )
             }
         }

@@ -9,17 +9,21 @@ import io.mosip.vciclient.constants.ProofsCallback
 import io.mosip.vciclient.constants.TokenResponseCallback
 import io.mosip.vciclient.constants.TxCodeCallback
 import io.mosip.vciclient.credential.response.CredentialResponse
+import io.mosip.vciclient.credentialOffer.AuthorizationCodeRequestOptions
+import io.mosip.vciclient.credentialOffer.CredentialDownloadRequest
 import io.mosip.vciclient.credentialOffer.CredentialOfferFlowHandler
+import io.mosip.vciclient.credentialOffer.CredentialTransactionOptions
 import io.mosip.vciclient.dpop.DPoPManager
 import io.mosip.vciclient.exception.DPoPException
 import io.mosip.vciclient.exception.VCIClientException
 import io.mosip.vciclient.issuerMetadata.IssuerMetadataService
 import io.mosip.vciclient.trustedIssuer.TrustedIssuerFlowHandler
+import io.mosip.vciclient.trustedIssuer.TrustedIssuerCredentialRequest
 import java.util.logging.Logger
 
 class VCIClient(val traceabilityId: String) {
     
-    Companion object{
+    companion object{
         private const val VCI_ERROR_CODE = "VCI-010"
     }
 
@@ -99,14 +103,16 @@ class VCIClient(val traceabilityId: String) {
         dpopManager.reset()
         try {
             return TrustedIssuerFlowHandler().downloadCredentials(
-                credentialIssuer = credentialIssuer,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = getTokenResponse,
-                authorizationMethods = authorizations,
+                request = TrustedIssuerCredentialRequest(
+                    credentialIssuer = credentialIssuer,
+                    credentialConfigurationId = credentialConfigurationId,
+                    clientMetadata = clientMetadata,
+                    getTokenResponse = getTokenResponse,
+                    authorizationMethods = authorizations,
+                    downloadTimeoutInMillis = downloadTimeoutInMillis,
+                    dpopManager = dpopManager,
+                ),
                 getProofs = getProofs,
-                downloadTimeoutInMillis = downloadTimeoutInMillis,
-                dpopManager = dpopManager,
             )
         } catch (e: VCIClientException) {
             logger.severe("Downloading credential failed due to ${e.message}")
@@ -140,16 +146,24 @@ class VCIClient(val traceabilityId: String) {
         try {
             return CredentialOfferFlowHandler().downloadCredentials(
                 credentialOffer = credentialOffer,
-                clientMetadata = clientMetadata,
-                getTxCode = getTxCode,
-                authorizationMethods = authorizations,
-                getTokenResponse = getTokenResponse,
                 getProofs = getProofs,
-                onCheckIssuerTrust = onCheckIssuerTrust,
-                downloadTimeoutInMillis = downloadTimeoutInMillis,
-                dpopManager = dpopManager
+                request = CredentialDownloadRequest(
+                    authorizationCodeOptions = AuthorizationCodeRequestOptions(
+                        clientMetadata = clientMetadata,
+                        authorizationMethods = authorizations,
+                        traceabilityId = traceabilityId,
+                    ),
+                    transactionOptions = CredentialTransactionOptions(
+                        getTxCode = getTxCode,
+                        getTokenResponse = getTokenResponse,
+                        onCheckIssuerTrust = onCheckIssuerTrust,
+                        downloadTimeoutInMillis = downloadTimeoutInMillis,
+                        dpopManager = dpopManager,
+                    ),
+                ),
             )
         } catch (e: VCIClientException) {
+
             logger.severe("Downloading credential failed due to ${e.message}")
             throw VCIClientException(
                 code = e.code,

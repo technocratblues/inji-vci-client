@@ -21,6 +21,10 @@ import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
+import io.mosip.vciclient.preAuthCodeFlow.CredentialRequestContext
+import io.mosip.vciclient.preAuthCodeFlow.PreAuthFlowOptions
+import io.mosip.vciclient.authorizationCodeFlow.AuthorizationCodeCredentialRequest
+
 class CredentialOfferFlowHandlerV1Test {
     private val credentialOfferService = mockk<CredentialOfferService>()
     private val issuerMetadataService = mockk<IssuerMetadataService>()
@@ -78,27 +82,27 @@ class CredentialOfferFlowHandlerV1Test {
         } returns issuerMetadataResult
         coEvery {
             preAuthFlowService.requestCredentials(
-                issuerMetadata = issuerMetadataResult.issuerMetadata,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
-                getTokenResponse = any(),
+                context = any(),
+                options = any(),
                 getProofs = any(),
-                credentialConfigurationId = "UniversityDegreeCredential",
-                getTxCode = null,
-                downloadTimeoutInMillis = 11_000,
-                offer = offer,
-                dpopManager = any()
             )
         } returns expectedResponse
 
         val response = handler.downloadCredentials(
             credentialOffer = "offer",
-            clientMetadata = clientMetadata,
-            getTxCode = null,
-            getTokenResponse = tokenCallback,
             getProofs = { _ -> CredentialRequestProofs(proofs = listOf("proof-1")) },
-            authorizationMethods = authorizationMethods,
-            onCheckIssuerTrust = { _, _ -> true },
-            downloadTimeoutInMillis = 11_000
+            request = CredentialDownloadRequest(
+                authorizationCodeOptions = AuthorizationCodeRequestOptions(
+                    clientMetadata = clientMetadata,
+                    authorizationMethods = authorizationMethods,
+                ),
+                transactionOptions = CredentialTransactionOptions(
+                    getTxCode = null,
+                    getTokenResponse = tokenCallback,
+                    onCheckIssuerTrust = { _, _ -> true },
+                    downloadTimeoutInMillis = 11_000,
+                )
+            )
         )
 
         assertEquals(expectedResponse, response)
@@ -121,30 +125,27 @@ class CredentialOfferFlowHandlerV1Test {
         } returns issuerMetadataResult
         coEvery {
             authorizationCodeFlowService.requestCredentials(
-                issuerMetadata = issuerMetadataResult.issuerMetadata,
-                credentialConfigurationId = "UniversityDegreeCredential",
-                clientMetadata = clientMetadata,
-                getTokenResponse = any(),
+                request = any(),
                 getProofs = any(),
-                authorizationMethods = authorizationMethods,
-                credentialOffer = offer,
-                downloadTimeOutInMillis = 11_000,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
-                traceabilityId = "trace-1",
-                dpopManager = any()
             )
         } returns expectedResponse
 
         val response = handler.downloadCredentials(
             credentialOffer = "offer",
-            clientMetadata = clientMetadata,
-            getTxCode = null,
-            getTokenResponse = tokenCallback,
             getProofs = { _ -> CredentialRequestProofs(proofs = listOf("proof-1")) },
-            authorizationMethods = authorizationMethods,
-            onCheckIssuerTrust = { _, _ -> true },
-            downloadTimeoutInMillis = 11_000,
-            traceabilityId = "trace-1"
+            request = CredentialDownloadRequest(
+                authorizationCodeOptions = AuthorizationCodeRequestOptions(
+                    clientMetadata = clientMetadata,
+                    authorizationMethods = authorizationMethods,
+                    traceabilityId = "trace-1",
+                ),
+                transactionOptions = CredentialTransactionOptions(
+                    getTxCode = null,
+                    getTokenResponse = tokenCallback,
+                    onCheckIssuerTrust = { _, _ -> true },
+                    downloadTimeoutInMillis = 11_000,
+                )
+            )
         )
 
         assertEquals(expectedResponse, response)
@@ -166,17 +167,23 @@ class CredentialOfferFlowHandlerV1Test {
             issuerMetadataService.fetchIssuerMetadataResult("https://issuer.example.com", "UniversityDegreeCredential")
         } returns issuerMetadataResult
         coEvery {
-            preAuthFlowService.requestCredentials(any(), any(), any(), any(), any(), any(), any(), any(), any())
+            preAuthFlowService.requestCredentials(any(), any(), any())
         } returns emptyResponse
 
         val response = handler.downloadCredentials(
             credentialOffer = "offer",
-            clientMetadata = clientMetadata,
-            getTxCode = null,
-            getTokenResponse = tokenCallback,
             getProofs = { _ -> CredentialRequestProofs(proofs = listOf("proof-1")) },
-            authorizationMethods = authorizationMethods,
-            onCheckIssuerTrust = { _, _ -> true }
+            request = CredentialDownloadRequest(
+                authorizationCodeOptions = AuthorizationCodeRequestOptions(
+                    clientMetadata = clientMetadata,
+                    authorizationMethods = authorizationMethods,
+                ),
+                transactionOptions = CredentialTransactionOptions(
+                    getTxCode = null,
+                    getTokenResponse = tokenCallback,
+                    onCheckIssuerTrust = { _, _ -> true },
+                )
+            )
         )
 
         assertEquals(emptyResponse, response)

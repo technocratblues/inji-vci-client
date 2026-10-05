@@ -54,26 +54,21 @@ class TrustedIssuerFlowHandlerTest {
 
         coEvery {
             authService.requestCredentials(
-                issuerMetadata = issuerMetadataResult.issuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = any(),
+                request = any(),
                 getProofs = any(),
-                authorizationMethods = authorizationMethods,
-                downloadTimeOutInMillis = 10_000,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
-                dpopManager = any()
             )
         } returns expectedResponse
 
         val response = flowHandler.downloadCredentials(
-            credentialIssuer = credentialIssuer,
-            credentialConfigurationId = credentialConfigurationId,
-            clientMetadata = clientMetadata,
-            getTokenResponse = tokenResponseCallback,
+            request = TrustedIssuerCredentialRequest(
+                credentialIssuer = credentialIssuer,
+                credentialConfigurationId = credentialConfigurationId,
+                clientMetadata = clientMetadata,
+                getTokenResponse = tokenResponseCallback,
+                authorizationMethods = authorizationMethods,
+                downloadTimeoutInMillis = 10_000
+            ),
             getProofs = { _ -> CredentialRequestProofs(proofs = listOf("proof-1")) },
-            authorizationMethods = authorizationMethods,
-            downloadTimeoutInMillis = 10_000
         )
 
         assertEquals(expectedResponse, response)
@@ -94,26 +89,21 @@ class TrustedIssuerFlowHandlerTest {
 
         coEvery {
             authService.requestCredentialsDraft13(
-                issuerMetadata = issuerMetadataResult.issuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = any(),
+                request = any(),
                 getProofJwt = any(),
-                authorizationMethods = authorizationMethods,
-                downloadTimeOutInMillis = 10_000,
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
-                dpopManager = any()
             )
         } returns draft13Response
 
         val response = flowHandler.downloadCredentials(
-            credentialIssuer = credentialIssuer,
-            credentialConfigurationId = credentialConfigurationId,
-            clientMetadata = clientMetadata,
-            getTokenResponse = tokenResponseCallback,
+            request = TrustedIssuerCredentialRequest(
+                credentialIssuer = credentialIssuer,
+                credentialConfigurationId = credentialConfigurationId,
+                clientMetadata = clientMetadata,
+                getTokenResponse = tokenResponseCallback,
+                authorizationMethods = authorizationMethods,
+                downloadTimeoutInMillis = 10_000
+            ),
             getProofs = { _ -> CredentialRequestProofs(proofs = listOf("proof-1")) },
-            authorizationMethods = authorizationMethods,
-            downloadTimeoutInMillis = 10_000
         )
 
         assertEquals(listOf(CredentialItem(JsonPrimitive("credential-1"))), response.credentials)
@@ -131,19 +121,12 @@ class TrustedIssuerFlowHandlerTest {
 
         coEvery {
             authService.requestCredentialsDraft13(
-                issuerMetadata = issuerMetadataResult.issuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = any(),
+                request = any(),
                 getProofJwt = any(),
-                authorizationMethods = authorizationMethods,
-                downloadTimeOutInMillis = any(),
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
-                dpopManager = any()
             )
         } coAnswers {
             @Suppress("UNCHECKED_CAST")
-            val getProofJwt = invocation.args[4] as suspend (CredentialRequestProofMetadata) -> String
+            val getProofJwt = invocation.args[1] as suspend (CredentialRequestProofMetadata) -> String
             getProofJwt(
                 CredentialRequestProofMetadata(
                     credentialIssuer = credentialIssuer,
@@ -157,12 +140,14 @@ class TrustedIssuerFlowHandlerTest {
         val exception = assertThrows(DownloadFailedException::class.java) {
             runBlocking {
                 flowHandler.downloadCredentials(
-                    credentialIssuer = credentialIssuer,
-                    credentialConfigurationId = credentialConfigurationId,
-                    clientMetadata = clientMetadata,
-                    getTokenResponse = tokenResponseCallback,
+                    request = TrustedIssuerCredentialRequest(
+                        credentialIssuer = credentialIssuer,
+                        credentialConfigurationId = credentialConfigurationId,
+                        clientMetadata = clientMetadata,
+                        getTokenResponse = tokenResponseCallback,
+                        authorizationMethods = authorizationMethods
+                    ),
                     getProofs = { _ -> CredentialRequestProofs(proofs = emptyList()) },
-                    authorizationMethods = authorizationMethods
                 )
             }
         }
@@ -184,38 +169,26 @@ class TrustedIssuerFlowHandlerTest {
 
         coEvery {
             authService.requestCredentialsDraft13(
-                issuerMetadata = issuerMetadataResult.issuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = any(),
+                request = any(),
                 getProofJwt = any(),
-                authorizationMethods = authorizationMethods,
-                downloadTimeOutInMillis = any(),
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
-                dpopManager = any()
             )
         } returns draft13Response
 
         flowHandler.downloadCredentials(
-            credentialIssuer = credentialIssuer,
-            credentialConfigurationId = credentialConfigurationId,
-            clientMetadata = clientMetadata,
-            getTokenResponse = tokenResponseCallback,
+            request = TrustedIssuerCredentialRequest(
+                credentialIssuer = credentialIssuer,
+                credentialConfigurationId = credentialConfigurationId,
+                clientMetadata = clientMetadata,
+                getTokenResponse = tokenResponseCallback,
+                authorizationMethods = authorizationMethods
+            ),
             getProofs = { _ -> CredentialRequestProofs(proofs = listOf("proof-1", "proof-2")) },
-            authorizationMethods = authorizationMethods
         )
 
         coVerify(exactly = 1) {
             authService.requestCredentialsDraft13(
-                issuerMetadata = issuerMetadataResult.issuerMetadata,
-                credentialConfigurationId = credentialConfigurationId,
-                clientMetadata = clientMetadata,
-                getTokenResponse = any(),
+                request = any(),
                 getProofJwt = any(),
-                authorizationMethods = authorizationMethods,
-                downloadTimeOutInMillis = any(),
-                proofBindingContext = ProofBindingContext(proofSigningAlgorithmsSupported = listOf("ES256"), proofTypesSupported = listOf("jwt")),
-                dpopManager = any()
             )
         }
     }

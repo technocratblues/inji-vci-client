@@ -33,18 +33,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
         mockkObject(AuthorizationUrlBuilder)
 
         every {
-            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any(),
-                any()
-            )
+            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
         } returns "https://auth.example.com/authorize"
 
         openWebPage = mockk()
@@ -144,16 +133,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
 
         val parService = mockk<PushedAuthorizationRequestService>()
         coEvery {
-            parService.pushAuthorizationRequest(
-                parEndpoint = any(),
-                clientId = any(),
-                redirectUri = any(),
-                codeChallenge = any(),
-                state = any(),
-                nonce = any(),
-                scope = any(),
-                dpopJkt = any()
-            )
+            parService.pushAuthorizationRequest(any())
         } returns PushedAuthorizationResponse("urn:req:abc", 90)
 
         coEvery { openWebPage.invoke(any()) } returns mapOf("code" to "auth-code-123")
@@ -165,16 +145,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
         assertEquals("auth-code-123", response.authorizationCode)
 
         coVerify(exactly = 1) {
-            parService.pushAuthorizationRequest(
-                parEndpoint = "https://as.example.com/as/par",
-                clientId = "client-id",
-                redirectUri = "app://callback",
-                codeChallenge = "challenge",
-                state = "state",
-                nonce = "nonce",
-                scope = "openid",
-                dpopJkt = "dpop"
-            )
+            parService.pushAuthorizationRequest(any())
         }
         io.mockk.verify(exactly = 1) {
             AuthorizationUrlBuilder.buildAuthorizationRequestUrlWithRequestUri(
@@ -188,16 +159,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
         runTest {
             val parService = mockk<PushedAuthorizationRequestService>()
             coEvery {
-                parService.pushAuthorizationRequest(
-                    parEndpoint = any(),
-                    clientId = any(),
-                    redirectUri = any(),
-                    codeChallenge = any(),
-                    state = any(),
-                    nonce = any(),
-                    scope = any(),
-                    dpopJkt = any()
-                )
+                parService.pushAuthorizationRequest(any())
             } returns PushedAuthorizationResponse(null, 90)
 
             val service = RedirectToWebAuthorizationMethodService(openWebPage, parService)
@@ -224,21 +186,10 @@ class RedirectToWebAuthorizationMethodServiceTest {
         assertEquals("auth-code-123", response.authorizationCode)
 
         coVerify(exactly = 0) {
-            parService.pushAuthorizationRequest(
-                parEndpoint = any(),
-                clientId = any(),
-                redirectUri = any(),
-                codeChallenge = any(),
-                state = any(),
-                nonce = any(),
-                scope = any(),
-                dpopJkt = any()
-            )
+            parService.pushAuthorizationRequest(any())
         }
         io.mockk.verify(exactly = 1) {
-            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
         }
     }
 
@@ -250,16 +201,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
 
         val parService = mockk<PushedAuthorizationRequestService>()
         coEvery {
-            parService.pushAuthorizationRequest(
-                parEndpoint = any(),
-                clientId = any(),
-                redirectUri = any(),
-                codeChallenge = any(),
-                state = any(),
-                nonce = any(),
-                scope = any(),
-                dpopJkt = any()
-            )
+            parService.pushAuthorizationRequest(any())
         } returns PushedAuthorizationResponse("urn:req:abc", 90)
 
         coEvery { openWebPage.invoke(any()) } returns mapOf("code" to "auth-code-123")
@@ -269,9 +211,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
 
         assertEquals("success", response.status)
         io.mockk.verify(exactly = 0) {
-            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
         }
     }
 
@@ -283,16 +223,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
 
         val parService = mockk<PushedAuthorizationRequestService>()
         coEvery {
-            parService.pushAuthorizationRequest(
-                parEndpoint = any(),
-                clientId = any(),
-                redirectUri = any(),
-                codeChallenge = any(),
-                state = any(),
-                nonce = any(),
-                scope = any(),
-                dpopJkt = any()
-            )
+            parService.pushAuthorizationRequest(any())
         } returns PushedAuthorizationResponse("urn:req:abc", 90)
 
         coEvery { openWebPage.invoke(any()) } returns mapOf("code" to "auth-code-123")
@@ -303,16 +234,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
         assertEquals("success", response.status)
 
         coVerify(exactly = 1) {
-            parService.pushAuthorizationRequest(
-                parEndpoint = "https://as.example.com/as/par",
-                clientId = "client-id",
-                redirectUri = "app://callback",
-                codeChallenge = "challenge",
-                state = "state",
-                nonce = "nonce",
-                scope = "openid",
-                dpopJkt = "dpop"
-            )
+            parService.pushAuthorizationRequest(any())
         }
         io.mockk.verify(exactly = 1) {
             AuthorizationUrlBuilder.buildAuthorizationRequestUrlWithRequestUri(
@@ -320,9 +242,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
             )
         }
         io.mockk.verify(exactly = 0) {
-            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
         }
     }
 
@@ -331,16 +251,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
         runTest {
             val parService = mockk<PushedAuthorizationRequestService>()
             coEvery {
-                parService.pushAuthorizationRequest(
-                    parEndpoint = any(),
-                    clientId = any(),
-                    redirectUri = any(),
-                    codeChallenge = any(),
-                    state = any(),
-                    nonce = any(),
-                    scope = any(),
-                    dpopJkt = any()
-                )
+                parService.pushAuthorizationRequest(any())
             } throws PushedAuthorizationRequestException("PAR request failed at endpoint: HTTP 400")
 
             val service = RedirectToWebAuthorizationMethodService(openWebPage, parService)
@@ -352,9 +263,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
 
             coVerify(exactly = 0) { openWebPage.invoke(any()) }
             io.mockk.verify(exactly = 0) {
-                AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                    any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-                )
+                AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
             }
         }
 
@@ -374,9 +283,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
 
         coVerify(exactly = 0) { openWebPage.invoke(any()) }
         io.mockk.verify(exactly = 0) {
-            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
         }
     }
 
@@ -384,16 +291,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
     fun `should fall back to standard authorization request when optional PAR fails`() = runTest {
         val parService = mockk<PushedAuthorizationRequestService>()
         coEvery {
-            parService.pushAuthorizationRequest(
-                parEndpoint = any(),
-                clientId = any(),
-                redirectUri = any(),
-                codeChallenge = any(),
-                state = any(),
-                nonce = any(),
-                scope = any(),
-                dpopJkt = any()
-            )
+            parService.pushAuthorizationRequest(any())
         } throws PushedAuthorizationRequestException("PAR request failed at endpoint: HTTP 400")
 
         coEvery { openWebPage.invoke(any()) } returns mapOf("code" to "auth-code-123")
@@ -405,9 +303,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
         assertEquals("auth-code-123", response.authorizationCode)
 
         io.mockk.verify(exactly = 1) {
-            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
         }
     }
 
@@ -416,16 +312,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
         runTest {
             val parService = mockk<PushedAuthorizationRequestService>()
             coEvery {
-                parService.pushAuthorizationRequest(
-                    parEndpoint = any(),
-                    clientId = any(),
-                    redirectUri = any(),
-                    codeChallenge = any(),
-                    state = any(),
-                    nonce = any(),
-                    scope = any(),
-                    dpopJkt = any()
-                )
+                parService.pushAuthorizationRequest(any())
             } throws PushedAuthorizationRequestException("PAR request failed at endpoint: timeout")
 
             coEvery { openWebPage.invoke(any()) } returns mapOf("code" to "auth-code-123")
@@ -435,9 +322,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
 
             assertEquals("success", response.status)
             io.mockk.verify(exactly = 1) {
-                AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                    any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-                )
+                AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
             }
         }
 
@@ -445,16 +330,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
     fun `should fall back when optional PAR fails with a non PAR exception`() = runTest {
         val parService = mockk<PushedAuthorizationRequestService>()
         coEvery {
-            parService.pushAuthorizationRequest(
-                parEndpoint = any(),
-                clientId = any(),
-                redirectUri = any(),
-                codeChallenge = any(),
-                state = any(),
-                nonce = any(),
-                scope = any(),
-                dpopJkt = any()
-            )
+            parService.pushAuthorizationRequest(any())
         } throws IllegalStateException("unexpected failure")
 
         coEvery { openWebPage.invoke(any()) } returns mapOf("code" to "auth-code-123")
@@ -464,9 +340,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
 
         assertEquals("success", response.status)
         io.mockk.verify(exactly = 1) {
-            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(
-                any(), any(), any(), any(), any(), any(), any(), any(), any(), any()
-            )
+            AuthorizationUrlBuilder.buildAuthorizationRequestUrl(any())
         }
     }
 
@@ -474,16 +348,7 @@ class RedirectToWebAuthorizationMethodServiceTest {
     fun `should not fall back when mandatory PAR fails with a non PAR exception`() = runTest {
         val parService = mockk<PushedAuthorizationRequestService>()
         coEvery {
-            parService.pushAuthorizationRequest(
-                parEndpoint = any(),
-                clientId = any(),
-                redirectUri = any(),
-                codeChallenge = any(),
-                state = any(),
-                nonce = any(),
-                scope = any(),
-                dpopJkt = any()
-            )
+            parService.pushAuthorizationRequest(any())
         } throws IllegalStateException("unexpected failure")
 
         val service = RedirectToWebAuthorizationMethodService(openWebPage, parService)
